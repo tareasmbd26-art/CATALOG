@@ -7,427 +7,271 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fb; display: flex; flex-direction: column; align-items: center; padding: 16px; }
-        .container { max-width: 480px; width: 100%; background: white; border-radius: 24px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .container { max-width: 480px; width: 100%; background: white; border-radius: 24px; padding: 20px; }
         .header { text-align: center; margin-bottom: 24px; }
         .business-name { font-size: 24px; font-weight: 700; color: #0a1e3c; }
         .product { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #e9ecf0; display: flex; gap: 16px; }
         .product-image { width: 80px; height: 80px; background: #f0f2f5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
         .product-info { flex: 1; }
-        .product-name { font-weight: 600; font-size: 16px; color: #0a1e3c; }
-        .product-price { font-size: 20px; font-weight: 700; color: #1a5cff; margin: 4px 0; }
-        .product-stock { font-size: 12px; color: #2ecc71; }
+        .product-name { font-weight: 600; font-size: 16px; }
+        .product-price { font-size: 20px; font-weight: 700; color: #1a5cff; }
         .btn { width: 100%; padding: 14px; background: #1a5cff; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
         .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .form-group { margin-bottom: 16px; }
-        .form-input { width: 100%; padding: 12px; border: 2px solid #e9ecf0; border-radius: 12px; }
+        .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; }
+        .form-input { width: 100%; padding: 12px; border: 2px solid #e9ecf0; border-radius: 12px; margin-bottom: 16px; }
         .cuota-option { display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e9ecf0; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
         .cuota-option.selected { border-color: #1a5cff; background: #f2f6ff; }
-        .badge { background: #2ecc71; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 12px; }
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; z-index: 2000; }
-        .estado-pedido { background: #f2f6ff; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 2px solid #1a5cff; }
-        .estado-pendiente { color: #f39c12; font-weight: 700; }
-        .estado-confirmado { color: #2ecc71; font-weight: 700; }
-        .estado-rechazado { color: #e74c3c; font-weight: 700; }
+        .estado-box { background: #f2f6ff; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 2px solid #1a5cff; }
+        .pendiente { color: #f39c12; font-weight: 700; }
+        .confirmado { color: #2ecc71; font-weight: 700; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="business-name" id="businessName">Mi Tienda</div>
-            <div style="color: #6f7b8a; margin-top: 4px;">🛍️ Selecciona y solicita tu pedido</div>
+            <div style="color: #666;">🛍️ Selecciona y solicita tu pedido</div>
         </div>
 
-        <!-- ===== 🔴 NUEVO: ESTADO DEL PEDIDO (SOLO SI HAY UNO PENDIENTE) ===== -->
-        <div id="estadoPedidoContainer" style="display: none;"></div>
-
+        <div id="estadoPedido" style="display: none;"></div>
         <div id="productosLista"></div>
     </div>
 
-    <!-- ===== MODAL DE SOLICITUD DE PEDIDO ===== -->
+    <!-- MODAL SOLICITUD -->
     <div id="pedidoModal" class="modal">
         <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="font-size: 20px;">📦 Solicitar producto</h2>
-                <span style="font-size: 24px; cursor: pointer;" onclick="cerrarModal()">×</span>
-            </div>
-
+            <h2 style="margin-bottom: 16px;">📦 Solicitar producto</h2>
             <div id="resumenProducto" style="background: #f2f6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px;"></div>
-
-            <div class="form-group">
-                <label style="font-weight: 600;">Tu nombre</label>
-                <input type="text" class="form-input" id="clienteNombre" placeholder="Ej: Juan Pérez">
-            </div>
-
-            <div class="form-group">
-                <label style="font-weight: 600;">Tu WhatsApp</label>
-                <input type="text" class="form-input" id="clienteTelefono" placeholder="6000-0000">
-            </div>
-
+            <input type="text" id="clienteNombre" class="form-input" placeholder="Tu nombre">
+            <input type="text" id="clienteTelefono" class="form-input" placeholder="Tu WhatsApp">
             <div style="font-weight: 600; margin-bottom: 8px;">💰 ¿Cómo deseas pagar? (Máx. 2 cuotas)</div>
-            
             <div class="cuota-option selected" id="pagoCompleto" onclick="seleccionarCuotas(1)">
                 <span style="font-size: 20px;">✅</span>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600;">Pago completo</div>
-                    <div style="font-size: 13px; color: #6f7b8a;">Paga el total hoy</div>
-                </div>
-                <div style="font-weight: 700; color: #1a5cff;" id="totalCompleto">$0.00</div>
+                <div style="flex:1;">Pago completo</div>
+                <div style="font-weight:700;" id="totalCompleto">$0.00</div>
             </div>
-
             <div class="cuota-option" id="pago2Cuotas" onclick="seleccionarCuotas(2)">
                 <span style="font-size: 20px;">🔄</span>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600;">2 cuotas</div>
-                    <div style="font-size: 13px; color: #6f7b8a;">50% hoy, 50% al recibir</div>
-                </div>
-                <div style="font-weight: 700;" id="total2Cuotas">$0.00</div>
+                <div style="flex:1;">2 cuotas</div>
+                <div style="font-weight:700;" id="total2Cuotas">$0.00</div>
             </div>
-
-            <button class="btn" onclick="enviarSolicitud()" style="margin-top: 24px;">
-                📨 Solicitar pedido
-            </button>
-            <p style="font-size: 12px; color: #6f7b8a; text-align: center; margin-top: 12px;">
-                El vendedor confirmará disponibilidad antes de aceptar tu pedido.
-            </p>
+            <button class="btn" onclick="enviarPedido()" style="margin-top: 16px;">📨 Solicitar pedido</button>
         </div>
     </div>
 
-    <!-- ===== 🔴 NUEVO: MODAL DE CONFIRMACIÓN DE PEDIDO ===== -->
+    <!-- MODAL CONFIRMACIÓN -->
     <div id="confirmacionModal" class="modal">
-        <div class="modal-content">
-            <div style="text-align: center; padding: 16px 0;">
-                <div style="font-size: 64px; margin-bottom: 16px;" id="confirmacionEmoji">✅</div>
-                <h2 style="font-size: 24px; margin-bottom: 8px;" id="confirmacionTitulo">¡Pedido confirmado!</h2>
-                <p style="color: #6f7b8a; margin-bottom: 24px;" id="confirmacionMensaje"></p>
-                <button class="btn" onclick="cerrarConfirmacion()">Aceptar</button>
-            </div>
+        <div class="modal-content" style="text-align: center;">
+            <div style="font-size: 64px; margin-bottom: 16px;" id="confirmacionEmoji">✅</div>
+            <h2 style="margin-bottom: 8px;" id="confirmacionTitulo">¡Pedido confirmado!</h2>
+            <p style="color: #666; margin-bottom: 24px;" id="confirmacionMensaje"></p>
+            <button class="btn" onclick="cerrarConfirmacion()">Aceptar</button>
         </div>
     </div>
 
     <script>
-        // ===== 🚀 CATÁLOGO PÚBLICO - CON RECEPCIÓN DE CONFIRMACIONES =====
-        
-        // ===== 1. CONFIGURACIÓN =====
-        const STORAGE_KEY = 'catalogo_productos';
-        const PEDIDOS_KEY = 'pedidos_pendientes';
-        const CONFIRMADOS_KEY = 'pedidos_confirmados';
+        // ========== CATÁLOGO PÚBLICO - VERSIÓN FINAL ==========
+        const STORAGE_PRODUCTOS = 'catalogo_productos';
+        const STORAGE_PEDIDOS = 'pedidos_pendientes';
         
         let productos = [];
         let productoSeleccionado = null;
         let cuotasSeleccionadas = 1;
-        let pedidoActualId = null;
 
-        // ===== 2. INICIALIZACIÓN =====
+        // ========== INICIALIZACIÓN ==========
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🛍️ Catálogo iniciado');
-            
-            // Cargar productos
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                try {
-                    productos = JSON.parse(stored);
-                } catch(e) {
-                    productos = [];
-                }
-            }
-            
+            let stored = localStorage.getItem(STORAGE_PRODUCTOS);
+            productos = stored ? JSON.parse(stored) : [];
             renderizarProductos();
-            cargarNombreNegocio();
             
-            // 🔴 LO MÁS IMPORTANTE: ESCUCHAR CONFIRMACIONES DEL ADMIN
+            let nombre = localStorage.getItem('businessName') || 'Mi Tienda';
+            document.getElementById('businessName').textContent = nombre;
+            
+            // 🔴 ESCUCHAR CONFIRMACIONES DEL ADMIN
             window.addEventListener('storage', function(e) {
-                console.log('📦 Evento storage detectado:', e.key);
-                
-                // Escuchar confirmaciones de pedidos
                 if (e.key && e.key.startsWith('confirmado_')) {
-                    const pedidoId = parseInt(e.key.replace('confirmado_', ''));
-                    const pedidoData = JSON.parse(e.newValue || '{}');
-                    
-                    console.log('✅ Pedido confirmado recibido:', pedidoData);
-                    
-                    // Mostrar confirmación al cliente
-                    mostrarConfirmacion(pedidoData);
-                    
-                    // Limpiar
+                    let pedido = JSON.parse(e.newValue);
+                    mostrarConfirmacion(pedido);
                     localStorage.removeItem(e.key);
                 }
-                
-                // Escuchar rechazos de pedidos
                 if (e.key && e.key.startsWith('rechazado_')) {
-                    const pedidoId = parseInt(e.key.replace('rechazado_', ''));
-                    
-                    console.log('❌ Pedido rechazado');
-                    
-                    // Mostrar rechazo al cliente
                     mostrarRechazo();
-                    
-                    // Limpiar
                     localStorage.removeItem(e.key);
                 }
-                
-                // Actualizar productos si cambian
-                if (e.key === STORAGE_KEY) {
-                    try {
-                        productos = JSON.parse(e.newValue || '[]');
-                        renderizarProductos();
-                    } catch(e) {}
+                if (e.key === STORAGE_PRODUCTOS) {
+                    productos = JSON.parse(e.newValue || '[]');
+                    renderizarProductos();
                 }
             });
             
-            // Verificar si hay pedidos pendientes/confirmados al cargar
-            verificarPedidosPendientes();
+            verificarPedidoPendiente();
         });
 
-        // ===== 3. CARGAR NOMBRE DEL NEGOCIO =====
-        function cargarNombreNegocio() {
-            const nombre = localStorage.getItem('businessName') || 'Mi Tienda';
-            document.getElementById('businessName').textContent = nombre;
-        }
-
-        // ===== 4. RENDERIZAR PRODUCTOS =====
         function renderizarProductos() {
-            const container = document.getElementById('productosLista');
+            let container = document.getElementById('productosLista');
             if (!container) return;
-            
             if (productos.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6f7b8a;">No hay productos disponibles</div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px;">No hay productos</div>';
                 return;
             }
-
             let html = '';
             productos.forEach(p => {
                 if (p.stock > 0) {
-                    html += `
-                        <div class="product">
-                            <div class="product-image">${p.emoji || '📦'}</div>
-                            <div class="product-info">
-                                <div class="product-name">${p.name}</div>
-                                <div style="color: #6f7b8a; font-size: 13px;">${p.description || ''}</div>
-                                <div class="product-price">$${p.price.toFixed(2)}</div>
-                                <div class="product-stock">✓ ${p.stock} disponibles</div>
-                                <button class="btn" onclick="abrirModalSolicitud(${p.id})">
-                                    📦 Solicitar
-                                </button>
-                            </div>
+                    html += `<div class="product">
+                        <div class="product-image">${p.emoji || '📦'}</div>
+                        <div class="product-info">
+                            <div class="product-name">${p.nombre}</div>
+                            <div style="color:#666; font-size:13px;">${p.descripcion || ''}</div>
+                            <div class="product-price">$${p.precio.toFixed(2)}</div>
+                            <div style="font-size:12px; color:#2ecc71;">✓ ${p.stock} disponibles</div>
+                            <button class="btn" onclick="abrirModal(${p.id})">📦 Solicitar</button>
                         </div>
-                    `;
+                    </div>`;
                 }
             });
             container.innerHTML = html;
         }
 
-        // ===== 5. ABRIR MODAL DE SOLICITUD =====
-        function abrirModalSolicitud(productId) {
-            productoSeleccionado = productos.find(p => p.id === productId);
+        function abrirModal(id) {
+            productoSeleccionado = productos.find(p => p.id === id);
             if (!productoSeleccionado) return;
-            
             document.getElementById('resumenProducto').innerHTML = `
-                <div style="display: flex; gap: 12px;">
-                    <div style="font-size: 32px;">${productoSeleccionado.emoji || '📦'}</div>
+                <div style="display:flex; gap:12px;">
+                    <div style="font-size:32px;">${productoSeleccionado.emoji || '📦'}</div>
                     <div>
-                        <div style="font-weight: 600;">${productoSeleccionado.name}</div>
-                        <div style="font-size: 13px; color: #6f7b8a;">${productoSeleccionado.description || ''}</div>
-                        <div style="font-weight: 700; color: #1a5cff; margin-top: 4px;">$${productoSeleccionado.price.toFixed(2)}</div>
+                        <div style="font-weight:600;">${productoSeleccionado.nombre}</div>
+                        <div style="color:#666;">$${productoSeleccionado.precio.toFixed(2)}</div>
                     </div>
                 </div>
             `;
-            
-            const total = productoSeleccionado.price;
-            document.getElementById('totalCompleto').innerHTML = `$${total.toFixed(2)}`;
-            document.getElementById('total2Cuotas').innerHTML = `$${(total/2).toFixed(2)} c/u`;
-            
+            document.getElementById('totalCompleto').innerHTML = `$${productoSeleccionado.precio.toFixed(2)}`;
+            document.getElementById('total2Cuotas').innerHTML = `$${(productoSeleccionado.precio/2).toFixed(2)} c/u`;
             cuotasSeleccionadas = 1;
-            seleccionarCuotas(1);
-            
+            document.querySelectorAll('.cuota-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('pagoCompleto').classList.add('selected');
             document.getElementById('pedidoModal').classList.add('active');
         }
 
-        function seleccionarCuotas(numero) {
-            cuotasSeleccionadas = numero;
+        function seleccionarCuotas(num) {
+            cuotasSeleccionadas = num;
             document.querySelectorAll('.cuota-option').forEach(el => el.classList.remove('selected'));
-            document.getElementById(numero === 1 ? 'pagoCompleto' : 'pago2Cuotas').classList.add('selected');
+            document.getElementById(num === 1 ? 'pagoCompleto' : 'pago2Cuotas').classList.add('selected');
         }
 
-        // ===== 6. ENVIAR SOLICITUD DE PEDIDO =====
-        function enviarSolicitud() {
-            const nombre = document.getElementById('clienteNombre').value.trim();
-            const telefono = document.getElementById('clienteTelefono').value.trim();
-            
-            if (!nombre || !telefono) {
-                alert('⚠️ Ingresa tu nombre y WhatsApp');
-                return;
-            }
-            
+        function enviarPedido() {
+            let nombre = document.getElementById('clienteNombre').value.trim();
+            let telefono = document.getElementById('clienteTelefono').value.trim();
+            if (!nombre || !telefono) { alert('⚠️ Completa tus datos'); return; }
             if (!productoSeleccionado) return;
             
-            // Crear solicitud
-            const solicitud = {
+            let pedido = {
                 id: Date.now(),
                 fecha: new Date().toISOString(),
                 cliente: nombre,
                 telefono: telefono,
                 producto: {
                     id: productoSeleccionado.id,
-                    name: productoSeleccionado.name,
-                    price: productoSeleccionado.price,
+                    nombre: productoSeleccionado.nombre,
+                    precio: productoSeleccionado.precio,
                     emoji: productoSeleccionado.emoji
                 },
-                cantidad: 1,
-                total: productoSeleccionado.price,
+                total: productoSeleccionado.precio,
                 cuotas: cuotasSeleccionadas,
-                montoPorCuota: productoSeleccionado.price / cuotasSeleccionadas,
+                montoPorCuota: productoSeleccionado.precio / cuotasSeleccionadas,
                 estado: 'pendiente'
             };
             
-            // Guardar pedido en localStorage para el admin
-            let pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-            pedidos.unshift(solicitud);
-            localStorage.setItem(PEDIDOS_KEY, JSON.stringify(pedidos));
-            
-            // 🔴 NOTIFICAR AL ADMIN INMEDIATAMENTE
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS) || '[]');
+            pedidos.unshift(pedido);
+            localStorage.setItem(STORAGE_PEDIDOS, JSON.stringify(pedidos));
             localStorage.setItem('nuevo_pedido', 'true');
-            localStorage.setItem('nuevo_pedido_' + solicitud.id, 'true');
+            localStorage.setItem(`mi_pedido_${pedido.id}`, JSON.stringify(pedido));
             
-            // Guardar pedido actual para escuchar confirmaciones
-            pedidoActualId = solicitud.id;
-            localStorage.setItem('mi_pedido_actual', JSON.stringify({
-                id: solicitud.id,
-                cliente: nombre,
-                telefono: telefono
-            }));
+            document.getElementById('pedidoModal').classList.remove('active');
+            document.getElementById('clienteNombre').value = '';
+            document.getElementById('clienteTelefono').value = '';
             
-            mostrarToast('✅ Solicitud enviada. Espera confirmación del vendedor.');
-            cerrarModal();
-            
-            // Mostrar estado de pedido pendiente
-            mostrarEstadoPendiente(solicitud);
+            mostrarEstadoPendiente(pedido);
+            toast('✅ Solicitud enviada. Espera confirmación.');
         }
 
-        // ===== 7. MOSTRAR ESTADO DE PEDIDO PENDIENTE =====
         function mostrarEstadoPendiente(pedido) {
-            const container = document.getElementById('estadoPedidoContainer');
-            container.style.display = 'block';
-            container.innerHTML = `
-                <div class="estado-pedido">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="font-size: 20px;">⏳</span>
-                        <span class="estado-pendiente">Pendiente de confirmación</span>
+            let div = document.getElementById('estadoPedido');
+            div.style.display = 'block';
+            div.innerHTML = `
+                <div class="estado-box">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:20px;">⏳</span>
+                        <span class="pendiente">Pendiente de confirmación</span>
                     </div>
-                    <div style="font-size: 14px;">
-                        <strong>${pedido.producto.emoji} ${pedido.producto.name}</strong><br>
-                        <span style="color: #6f7b8a;">Total: $${pedido.total.toFixed(2)} · ${pedido.cuotas} cuota(s)</span>
-                    </div>
-                    <div style="margin-top: 12px; font-size: 12px; color: #f39c12;">
-                        ⏱️ Esperando que el vendedor confirme...
+                    <div style="margin-top:12px;">
+                        <strong>${pedido.producto.emoji} ${pedido.producto.nombre}</strong><br>
+                        <span style="color:#666;">Total: $${pedido.total.toFixed(2)} · ${pedido.cuotas} cuota(s)</span>
                     </div>
                 </div>
             `;
         }
 
-        // ===== 8. 🔴 MOSTRAR CONFIRMACIÓN DE PEDIDO (¡ESTO ES LO QUE FALTABA!) =====
         function mostrarConfirmacion(pedido) {
-            console.log('✅ Mostrando confirmación:', pedido);
-            
-            const modal = document.getElementById('confirmacionModal');
-            const emoji = document.getElementById('confirmacionEmoji');
-            const titulo = document.getElementById('confirmacionTitulo');
-            const mensaje = document.getElementById('confirmacionMensaje');
+            let modal = document.getElementById('confirmacionModal');
+            let emoji = document.getElementById('confirmacionEmoji');
+            let titulo = document.getElementById('confirmacionTitulo');
+            let mensaje = document.getElementById('confirmacionMensaje');
             
             if (pedido.pagoCompleto) {
                 emoji.innerHTML = '✅';
                 titulo.innerHTML = '¡Pedido confirmado!';
-                mensaje.innerHTML = `
-                    Tu pedido de <strong>${pedido.producto.emoji} ${pedido.producto.name}</strong> ha sido <span style="color: #2ecc71; font-weight: 700;">ACEPTADO</span>.<br><br>
-                    💰 <strong>Total:</strong> $${pedido.total.toFixed(2)}<br>
-                    💳 <strong>Pago:</strong> Completo<br><br>
-                    El vendedor te contactará para coordinar la entrega.
-                `;
+                mensaje.innerHTML = `Tu pedido de <strong>${pedido.producto.emoji} ${pedido.producto.nombre}</strong> ha sido ACEPTADO.<br><br>💰 Total: $${pedido.total.toFixed(2)}<br>💳 Pago: Completo<br><br>El vendedor te contactará.`;
             } else {
                 emoji.innerHTML = '🔄';
                 titulo.innerHTML = '¡Pedido confirmado!';
-                mensaje.innerHTML = `
-                    Tu pedido de <strong>${pedido.producto.emoji} ${pedido.producto.name}</strong> ha sido <span style="color: #2ecc71; font-weight: 700;">ACEPTADO</span>.<br><br>
-                    💰 <strong>Total:</strong> $${pedido.total.toFixed(2)}<br>
-                    💳 <strong>Pago:</strong> 2 cuotas de $${pedido.montoPorCuota.toFixed(2)}<br>
-                    🕐 <strong>Primer pago:</strong> Ahora<br>
-                    🕐 <strong>Segundo pago:</strong> Al recibir<br><br>
-                    El vendedor te contactará para coordinar.
-                `;
+                mensaje.innerHTML = `Tu pedido de <strong>${pedido.producto.emoji} ${pedido.producto.nombre}</strong> ha sido ACEPTADO.<br><br>💰 Total: $${pedido.total.toFixed(2)}<br>💳 Pago: 2 cuotas de $${pedido.montoPorCuota.toFixed(2)}<br><br>El vendedor te contactará.`;
             }
             
             modal.classList.add('active');
-            
-            // Ocultar estado pendiente
-            document.getElementById('estadoPedidoContainer').style.display = 'none';
-            
-            // Limpiar pedido actual
-            localStorage.removeItem('mi_pedido_actual');
-            pedidoActualId = null;
+            document.getElementById('estadoPedido').style.display = 'none';
         }
 
-        // ===== 9. MOSTRAR RECHAZO DE PEDIDO =====
         function mostrarRechazo() {
-            const modal = document.getElementById('confirmacionModal');
+            let modal = document.getElementById('confirmacionModal');
             document.getElementById('confirmacionEmoji').innerHTML = '❌';
             document.getElementById('confirmacionTitulo').innerHTML = 'Pedido no disponible';
-            document.getElementById('confirmacionMensaje').innerHTML = `
-                Lo sentimos, tu pedido no pudo ser confirmado.<br><br>
-                El producto puede estar agotado o el vendedor no pudo procesarlo.<br><br>
-                Por favor, intenta con otro producto o contacta al vendedor.
-            `;
+            document.getElementById('confirmacionMensaje').innerHTML = 'Lo sentimos, tu pedido no pudo ser confirmado. Intenta con otro producto.';
             modal.classList.add('active');
-            
-            document.getElementById('estadoPedidoContainer').style.display = 'none';
-            localStorage.removeItem('mi_pedido_actual');
-            pedidoActualId = null;
+            document.getElementById('estadoPedido').style.display = 'none';
         }
 
-        // ===== 10. VERIFICAR PEDIDOS PENDIENTES AL CARGAR =====
-        function verificarPedidosPendientes() {
-            const miPedido = localStorage.getItem('mi_pedido_actual');
-            if (miPedido) {
-                try {
-                    const pedido = JSON.parse(miPedido);
-                    // Buscar si el pedido aún está pendiente
-                    const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-                    const pendiente = pedidos.find(p => p.id === pedido.id && p.estado === 'pendiente');
-                    
-                    if (pendiente) {
-                        mostrarEstadoPendiente(pendiente);
-                        pedidoActualId = pendiente.id;
-                    }
-                } catch(e) {}
+        function verificarPedidoPendiente() {
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key && key.startsWith('mi_pedido_')) {
+                    try {
+                        let pedido = JSON.parse(localStorage.getItem(key));
+                        let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS) || '[]');
+                        let pendiente = pedidos.find(p => p.id === pedido.id && p.estado === 'pendiente');
+                        if (pendiente) mostrarEstadoPendiente(pendiente);
+                    } catch(e) {}
+                }
             }
-        }
-
-        // ===== 11. CERRAR MODALES =====
-        function cerrarModal() {
-            document.getElementById('pedidoModal').classList.remove('active');
-            document.getElementById('clienteNombre').value = '';
-            document.getElementById('clienteTelefono').value = '';
         }
 
         function cerrarConfirmacion() {
             document.getElementById('confirmacionModal').classList.remove('active');
         }
 
-        // ===== 12. TOAST =====
-        function mostrarToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        function toast(msg) {
+            let t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
-        // Exponer funciones globalmente
-        window.abrirModalSolicitud = abrirModalSolicitud;
+        window.abrirModal = abrirModal;
         window.seleccionarCuotas = seleccionarCuotas;
-        window.enviarSolicitud = enviarSolicitud;
-        window.cerrarModal = cerrarModal;
+        window.enviarPedido = enviarPedido;
         window.cerrarConfirmacion = cerrarConfirmacion;
     </script>
 </body>
