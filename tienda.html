@@ -72,7 +72,7 @@
     </div>
 
     <script>
-        // ========== CATÁLOGO PÚBLICO - VERSIÓN FINAL ==========
+        // ========== CATÁLOGO PÚBLICO - CORREGIDO ==========
         const STORAGE_PRODUCTOS = 'catalogo_productos';
         const STORAGE_PEDIDOS = 'pedidos_pendientes';
         
@@ -82,15 +82,19 @@
 
         // ========== INICIALIZACIÓN ==========
         document.addEventListener('DOMContentLoaded', function() {
-            let stored = localStorage.getItem(STORAGE_PRODUCTOS);
-            productos = stored ? JSON.parse(stored) : [];
-            renderizarProductos();
+            console.log('🛍️ Catálogo iniciado');
+            
+            // 🔴 CARGAR PRODUCTOS USANDO LAS PROPIEDADES CORRECTAS
+            cargarProductos();
             
             let nombre = localStorage.getItem('businessName') || 'Mi Tienda';
             document.getElementById('businessName').textContent = nombre;
             
-            // 🔴 ESCUCHAR CONFIRMACIONES DEL ADMIN
+            // Escuchar cambios en los productos
             window.addEventListener('storage', function(e) {
+                if (e.key === STORAGE_PRODUCTOS) {
+                    cargarProductos();
+                }
                 if (e.key && e.key.startsWith('confirmado_')) {
                     let pedido = JSON.parse(e.newValue);
                     mostrarConfirmacion(pedido);
@@ -100,22 +104,36 @@
                     mostrarRechazo();
                     localStorage.removeItem(e.key);
                 }
-                if (e.key === STORAGE_PRODUCTOS) {
-                    productos = JSON.parse(e.newValue || '[]');
-                    renderizarProductos();
-                }
             });
             
             verificarPedidoPendiente();
         });
 
+        // 🔴 FUNCIÓN CORREGIDA PARA CARGAR PRODUCTOS
+        function cargarProductos() {
+            let stored = localStorage.getItem(STORAGE_PRODUCTOS);
+            if (stored) {
+                try {
+                    productos = JSON.parse(stored);
+                    console.log('📦 Productos cargados:', productos);
+                } catch(e) {
+                    productos = [];
+                }
+            } else {
+                productos = [];
+            }
+            renderizarProductos();
+        }
+
         function renderizarProductos() {
             let container = document.getElementById('productosLista');
             if (!container) return;
+            
             if (productos.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px;">No hay productos</div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px;">No hay productos disponibles</div>';
                 return;
             }
+            
             let html = '';
             productos.forEach(p => {
                 if (p.stock > 0) {
@@ -137,6 +155,7 @@
         function abrirModal(id) {
             productoSeleccionado = productos.find(p => p.id === id);
             if (!productoSeleccionado) return;
+            
             document.getElementById('resumenProducto').innerHTML = `
                 <div style="display:flex; gap:12px;">
                     <div style="font-size:32px;">${productoSeleccionado.emoji || '📦'}</div>
@@ -146,11 +165,14 @@
                     </div>
                 </div>
             `;
+            
             document.getElementById('totalCompleto').innerHTML = `$${productoSeleccionado.precio.toFixed(2)}`;
             document.getElementById('total2Cuotas').innerHTML = `$${(productoSeleccionado.precio/2).toFixed(2)} c/u`;
+            
             cuotasSeleccionadas = 1;
             document.querySelectorAll('.cuota-option').forEach(el => el.classList.remove('selected'));
             document.getElementById('pagoCompleto').classList.add('selected');
+            
             document.getElementById('pedidoModal').classList.add('active');
         }
 
@@ -163,7 +185,11 @@
         function enviarPedido() {
             let nombre = document.getElementById('clienteNombre').value.trim();
             let telefono = document.getElementById('clienteTelefono').value.trim();
-            if (!nombre || !telefono) { alert('⚠️ Completa tus datos'); return; }
+            
+            if (!nombre || !telefono) { 
+                alert('⚠️ Completa tus datos'); 
+                return; 
+            }
             if (!productoSeleccionado) return;
             
             let pedido = {
