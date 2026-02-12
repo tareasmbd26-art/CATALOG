@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Mi Tienda · Pedidos WhatsApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Mi Tienda · Catálogo</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fb; display: flex; flex-direction: column; align-items: center; padding: 16px; }
@@ -16,8 +16,8 @@
         .product-name { font-weight: 600; font-size: 16px; color: #0a1e3c; }
         .product-price { font-size: 20px; font-weight: 700; color: #1a5cff; margin: 4px 0; }
         .product-stock { font-size: 12px; color: #2ecc71; }
-        .btn { width: 100%; padding: 14px; background: #25D366; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-        .btn-outline { background: white; border: 2px solid #1a5cff; color: #1a5cff; }
+        .btn { width: 100%; padding: 14px; background: #1a5cff; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
         .modal.active { display: flex; }
         .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; }
@@ -25,6 +25,7 @@
         .form-input { width: 100%; padding: 12px; border: 2px solid #e9ecf0; border-radius: 12px; }
         .cuota-option { display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e9ecf0; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
         .cuota-option.selected { border-color: #1a5cff; background: #f2f6ff; }
+        .badge { background: #2ecc71; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 12px; }
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; z-index: 2000; }
     </style>
 </head>
@@ -32,21 +33,18 @@
     <div class="container">
         <div class="header">
             <div class="business-name" id="businessName">Mi Tienda</div>
-            <div style="color: #6f7b8a; margin-top: 4px;">🛍️ Haz tu pedido por WhatsApp</div>
+            <div style="color: #6f7b8a; margin-top: 4px;">🛍️ Selecciona y solicita tu pedido</div>
         </div>
 
+        <div id="mensajeEstado" style="display: none;" class="badge"></div>
         <div id="productosLista"></div>
-        
-        <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 16px; text-align: center; color: #6f7b8a;">
-            Pedidos sujetos a disponibilidad de stock.
-        </div>
     </div>
 
     <!-- MODAL DE PEDIDO -->
     <div id="pedidoModal" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="font-size: 20px;">📝 Tu pedido</h2>
+                <h2 style="font-size: 20px;">📦 Solicitar producto</h2>
                 <span style="font-size: 24px; cursor: pointer;" onclick="cerrarModal()">×</span>
             </div>
 
@@ -62,7 +60,7 @@
                 <input type="text" class="form-input" id="clienteTelefono" placeholder="6000-0000">
             </div>
 
-            <div style="font-weight: 600; margin-bottom: 8px;">💰 Método de pago</div>
+            <div style="font-weight: 600; margin-bottom: 8px;">💰 ¿Cómo deseas pagar? (Máx. 2 cuotas)</div>
             
             <div class="cuota-option selected" id="pagoCompleto" onclick="seleccionarCuotas(1)">
                 <span style="font-size: 20px;">✅</span>
@@ -77,214 +75,246 @@
                 <span style="font-size: 20px;">🔄</span>
                 <div style="flex: 1;">
                     <div style="font-weight: 600;">2 cuotas</div>
-                    <div style="font-size: 13px; color: #6f7b8a;">50% hoy, 50% en 15 días</div>
+                    <div style="font-size: 13px; color: #6f7b8a;">50% hoy, 50% al recibir</div>
                 </div>
                 <div style="font-weight: 700;" id="total2Cuotas">$0.00</div>
             </div>
 
-            <div class="cuota-option" id="pago3Cuotas" onclick="seleccionarCuotas(3)">
-                <span style="font-size: 20px;">🔄</span>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600;">3 cuotas</div>
-                    <div style="font-size: 13px; color: #6f7b8a;">33% hoy, 2 pagos quincenales</div>
-                </div>
-                <div style="font-weight: 700;" id="total3Cuotas">$0.00</div>
-            </div>
-
-            <div class="cuota-option" id="pago4Cuotas" onclick="seleccionarCuotas(4)">
-                <span style="font-size: 20px;">🔄</span>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600;">4 cuotas</div>
-                    <div style="font-size: 13px; color: #6f7b8a;">25% hoy, 3 pagos quincenales</div>
-                </div>
-                <div style="font-weight: 700;" id="total4Cuotas">$0.00</div>
-            </div>
-
-            <button class="btn" onclick="enviarPedido()" style="margin-top: 24px;">
-                📲 Enviar pedido por WhatsApp
+            <button class="btn" onclick="enviarSolicitud()" style="margin-top: 24px;">
+                📨 Solicitar pedido
             </button>
+            <p style="font-size: 12px; color: #6f7b8a; text-align: center; margin-top: 12px;">
+                El vendedor confirmará disponibilidad antes de aceptar tu pedido.
+            </p>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN (Cliente ve cuando su pedido es aceptado) -->
+    <div id="confirmacionModal" class="modal">
+        <div class="modal-content">
+            <div style="text-align: center; padding: 16px 0;">
+                <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+                <h2 style="font-size: 24px; margin-bottom: 8px;">¡Pedido confirmado!</h2>
+                <p style="color: #6f7b8a; margin-bottom: 24px;" id="mensajeConfirmacion"></p>
+                <button class="btn" onclick="cerrarConfirmacion()">Aceptar</button>
+            </div>
         </div>
     </div>
 
     <script>
         // ===== CONFIGURACIÓN =====
-        const TIENDA_ID = 'tareasmbd26-art';
-        const VENDEDOR_WHATSAPP = '50768138145'; // 🔴 CAMBIA ESTO: pon el número del vendedor (TÚ)
-        
-        // ===== PRODUCTOS (IGUAL QUE EN TU APP) =====
-        let productos = [
-            { id: 1, name: "Pan francés", description: "Pan fresco del día", price: 2.50, stock: 98, emoji: "🥖" },
-            { id: 2, name: "Pastel de fresa", description: "Delicioso pastel casero", price: 15.00, stock: 23, emoji: "🍰" }
-        ];
+        const STORAGE_KEY = 'catalogo_tienda';
+        const PEDIDOS_KEY = 'pedidos_pendientes';
+        const CONFIRMADOS_KEY = 'pedidos_confirmados';
 
-        let productoSeleccionado = null;
-        let cuotasSeleccionadas = 1;
+        // ===== PRODUCTOS (se sincronizan con la app de gestión) =====
+        let productos = [];
 
-        // ===== CARGAR PRODUCTOS =====
+        // ===== CARGA INICIAL =====
         function cargarProductos() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    productos = JSON.parse(stored);
+                } catch(e) {
+                    productos = [];
+                }
+            } else {
+                // Productos por defecto SOLO si no hay nada guardado
+                productos = [
+                    { id: 1, name: "Pan francés", description: "Pan fresco del día", price: 2.50, stock: 98, emoji: "🥖" },
+                    { id: 2, name: "Pastel de fresa", description: "Delicioso pastel casero", price: 15.00, stock: 23, emoji: "🍰" }
+                ];
+                guardarProductos();
+            }
+            renderizarProductos();
+            verificarPedidoPendiente();
+        }
+
+        function guardarProductos() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
+        }
+
+        function renderizarProductos() {
             const container = document.getElementById('productosLista');
-            let html = '';
+            if (!container) return;
             
+            if (productos.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6f7b8a;">No hay productos disponibles</div>';
+                return;
+            }
+
+            let html = '';
             productos.forEach(p => {
                 if (p.stock > 0) {
                     html += `
                         <div class="product">
-                            <div class="product-image">${p.emoji}</div>
+                            <div class="product-image">${p.emoji || '📦'}</div>
                             <div class="product-info">
                                 <div class="product-name">${p.name}</div>
-                                <div class="product-description" style="color: #6f7b8a; font-size: 13px;">${p.description}</div>
+                                <div class="product-description" style="color: #6f7b8a; font-size: 13px;">${p.description || ''}</div>
                                 <div class="product-price">$${p.price.toFixed(2)}</div>
-                                <div class="product-stock">✓ Stock disponible</div>
-                                <button class="btn" onclick="abrirModalPedido(${p.id})">
-                                    📲 Pedir ahora
+                                <div class="product-stock">✓ ${p.stock} disponibles</div>
+                                <button class="btn" onclick="abrirModalSolicitud(${p.id})">
+                                    📦 Solicitar
                                 </button>
                             </div>
                         </div>
                     `;
                 }
             });
-            
             container.innerHTML = html;
         }
 
-        // ===== ABRIR MODAL DE PEDIDO =====
-        function abrirModalPedido(productId) {
+        // ===== SOLICITUD DE PEDIDO =====
+        let productoSeleccionado = null;
+        let cuotasSeleccionadas = 1;
+
+        function abrirModalSolicitud(productId) {
             productoSeleccionado = productos.find(p => p.id === productId);
             if (!productoSeleccionado) return;
             
-            // Mostrar resumen del producto
             document.getElementById('resumenProducto').innerHTML = `
                 <div style="display: flex; gap: 12px;">
-                    <div style="font-size: 32px;">${productoSeleccionado.emoji}</div>
+                    <div style="font-size: 32px;">${productoSeleccionado.emoji || '📦'}</div>
                     <div>
                         <div style="font-weight: 600;">${productoSeleccionado.name}</div>
-                        <div style="font-size: 13px; color: #6f7b8a;">${productoSeleccionado.description}</div>
+                        <div style="font-size: 13px; color: #6f7b8a;">${productoSeleccionado.description || ''}</div>
                         <div style="font-weight: 700; color: #1a5cff; margin-top: 4px;">$${productoSeleccionado.price.toFixed(2)}</div>
                     </div>
                 </div>
             `;
             
-            // Calcular totales para cada opción de pago
             const total = productoSeleccionado.price;
             document.getElementById('totalCompleto').innerHTML = `$${total.toFixed(2)}`;
             document.getElementById('total2Cuotas').innerHTML = `$${(total/2).toFixed(2)} c/u`;
-            document.getElementById('total3Cuotas').innerHTML = `$${(total/3).toFixed(2)} c/u`;
-            document.getElementById('total4Cuotas').innerHTML = `$${(total/4).toFixed(2)} c/u`;
             
-            // Resetear selección
             cuotasSeleccionadas = 1;
             seleccionarCuotas(1);
             
             document.getElementById('pedidoModal').classList.add('active');
         }
 
-        // ===== SELECCIONAR NÚMERO DE CUOTAS =====
         function seleccionarCuotas(numero) {
             cuotasSeleccionadas = numero;
-            
-            // Quitar selección de todas
-            document.querySelectorAll('.cuota-option').forEach(el => {
-                el.classList.remove('selected');
-            });
-            
-            // Seleccionar la correspondiente
-            document.getElementById(`pago${numero === 1 ? 'Completo' : numero + 'Cuotas'}`).classList.add('selected');
+            document.querySelectorAll('.cuota-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(numero === 1 ? 'pagoCompleto' : 'pago2Cuotas').classList.add('selected');
         }
 
-        // ===== ENVIAR PEDIDO POR WHATSAPP =====
-        function enviarPedido() {
+        function enviarSolicitud() {
             const nombre = document.getElementById('clienteNombre').value.trim();
             const telefono = document.getElementById('clienteTelefono').value.trim();
             
             if (!nombre || !telefono) {
-                alert('⚠️ Por favor ingresa tu nombre y WhatsApp');
+                mostrarToast('⚠️ Ingresa tu nombre y WhatsApp');
                 return;
             }
             
             if (!productoSeleccionado) return;
             
-            const total = productoSeleccionado.price;
-            const montoPorCuota = total / cuotasSeleccionadas;
-            
-            // ===== MENSAJE PARA EL VENDEDOR (TÚ) =====
-            const mensajeVendedor = `🛒 *NUEVO PEDIDO*
-━━━━━━━━━━━━━━
-👤 *Cliente:* ${nombre}
-📱 *WhatsApp:* ${telefono}
-━━━━━━━━━━━━━━
-📦 *Producto:* ${productoSeleccionado.emoji} ${productoSeleccionado.name}
-💰 *Precio:* $${total.toFixed(2)}
-━━━━━━━━━━━━━━
-💳 *Pago:* ${cuotasSeleccionadas} ${cuotasSeleccionadas === 1 ? 'cuota' : 'cuotas'}
-💵 *Monto por cuota:* $${montoPorCuota.toFixed(2)}
-🕐 *Primer pago:* Hoy
-━━━━━━━━━━━━━━
-✅ *Para confirmar:*
-1. Espera la confirmación del vendedor
-2. Realiza el primer pago
-3. Recibirás tus productos
-
-🔗 *Ver pedido:* https://tareasmbd26-art.github.io/CATALOG/`;
-
-            // ===== MENSAJE PARA EL CLIENTE (CONFIRMACIÓN) =====
-            const mensajeCliente = `✅ *Hola ${nombre}!*
-Tu pedido ha sido *enviado* al vendedor.
-
-━━━━━━━━━━━━━━
-📦 *Tu pedido:*
-${productoSeleccionado.emoji} ${productoSeleccionado.name}
-💰 $${total.toFixed(2)}
-
-💳 *Pago:* ${cuotasSeleccionadas} ${cuotasSeleccionadas === 1 ? 'cuota' : 'cuotas'}
-💵 *${cuotasSeleccionadas === 1 ? 'Pago único' : 'Primer pago:'}* $${montoPorCuota.toFixed(2)}
-━━━━━━━━━━━━━━
-
-⏳ *El vendedor te confirmará el pedido en breve.*
-Gracias por comprar con nosotros 🛍️`;
-
-            // ===== 1. ENVIAR AL VENDEDOR (TÚ) =====
-            const urlVendedor = `https://wa.me/${VENDEDOR_WHATSAPP}?text=${encodeURIComponent(mensajeVendedor)}`;
-            window.open(urlVendedor, '_blank');
-            
-            // ===== 2. ENVIAR CONFIRMACIÓN AL CLIENTE =====
-            setTimeout(() => {
-                const urlCliente = `https://wa.me/${telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(mensajeCliente)}`;
-                window.open(urlCliente, '_blank');
-            }, 1000);
-            
-            // ===== 3. GUARDAR PEDIDO LOCALMENTE =====
-            guardarPedidoLocal({
+            // Crear solicitud
+            const solicitud = {
                 id: Date.now(),
+                fecha: new Date().toISOString(),
                 cliente: nombre,
                 telefono: telefono,
-                producto: productoSeleccionado,
-                total: total,
+                producto: {
+                    id: productoSeleccionado.id,
+                    name: productoSeleccionado.name,
+                    price: productoSeleccionado.price,
+                    emoji: productoSeleccionado.emoji
+                },
+                cantidad: 1,
+                total: productoSeleccionado.price,
                 cuotas: cuotasSeleccionadas,
-                montoPorCuota: montoPorCuota,
-                fecha: new Date().toISOString(),
-                estado: 'pendiente'
-            });
+                montoPorCuota: productoSeleccionado.price / cuotasSeleccionadas,
+                estado: 'pendiente' // pendiente, aceptado, rechazado
+            };
             
+            // Guardar en la app de gestión (index.html)
+            let pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
+            pedidos.unshift(solicitud);
+            localStorage.setItem(PEDIDOS_KEY, JSON.stringify(pedidos));
+            
+            // Guardar también en el storage compartido para notificación inmediata
+            localStorage.setItem('ultimo_pedido', JSON.stringify(solicitud));
+            localStorage.setItem('nuevo_pedido_' + solicitud.id, 'true');
+            
+            // Crear flag de notificación
+            localStorage.setItem('notificar_pedido', 'true');
+            
+            mostrarToast('✅ Solicitud enviada. Espera confirmación del vendedor.');
             cerrarModal();
-            mostrarToast('✅ Pedido enviado! Revisa WhatsApp');
-        }
-
-        // ===== GUARDAR PEDIDO EN LOCALSTORAGE =====
-        function guardarPedidoLocal(pedido) {
-            let pedidos = JSON.parse(localStorage.getItem(`pedidos_${TIENDA_ID}`) || '[]');
-            pedidos.unshift(pedido);
-            localStorage.setItem(`pedidos_${TIENDA_ID}`, JSON.stringify(pedidos));
             
-            // También guardar en el storage de la app de gestión
-            try {
-                localStorage.setItem('ultimo_pedido', JSON.stringify(pedido));
-            } catch(e) {}
+            // Guardar que este cliente tiene un pedido pendiente
+            localStorage.setItem('pedido_pendiente_' + solicitud.id, JSON.stringify({
+                id: solicitud.id,
+                cliente: nombre,
+                telefono: telefono
+            }));
+            
+            // Iniciar verificación de confirmación
+            iniciarVerificacion(solicitud.id);
         }
 
+        // ===== VERIFICAR SI EL PEDIDO FUE CONFIRMADO =====
+        function iniciarVerificacion(pedidoId) {
+            // Verificar cada 3 segundos si el vendedor confirmó
+            const intervalo = setInterval(() => {
+                const confirmados = JSON.parse(localStorage.getItem(CONFIRMADOS_KEY) || '[]');
+                const confirmado = confirmados.find(c => c.id === pedidoId);
+                
+                if (confirmado) {
+                    clearInterval(intervalo);
+                    mostrarConfirmacion(confirmado);
+                }
+            }, 3000);
+            
+            // Detener después de 5 minutos
+            setTimeout(() => clearInterval(intervalo), 300000);
+        }
+
+        function mostrarConfirmacion(pedido) {
+            const modal = document.getElementById('confirmacionModal');
+            const mensaje = document.getElementById('mensajeConfirmacion');
+            
+            if (pedido.cuotas === 1) {
+                mensaje.innerHTML = `✅ Tu pedido de ${pedido.producto.emoji} ${pedido.producto.name} ha sido <strong>ACEPTADO</strong>.<br><br>💰 Total: $${pedido.total.toFixed(2)}<br>💳 Pago: Completo<br><br>El vendedor te contactará para coordinar la entrega.`;
+            } else {
+                mensaje.innerHTML = `✅ Tu pedido de ${pedido.producto.emoji} ${pedido.producto.name} ha sido <strong>ACEPTADO</strong>.<br><br>💰 Total: $${pedido.total.toFixed(2)}<br>💳 Pago: 2 cuotas de $${pedido.montoPorCuota.toFixed(2)}<br>🕐 Primer pago: Ahora<br>🕐 Segundo pago: Al recibir<br><br>El vendedor te contactará para coordinar.`;
+            }
+            
+            modal.classList.add('active');
+            
+            // Limpiar el flag de pedido pendiente
+            localStorage.removeItem('pedido_pendiente_' + pedido.id);
+        }
+
+        // ===== VERIFICAR SI HAY UN PEDIDO PENDIENTE AL CARGAR =====
+        function verificarPedidoPendiente() {
+            // Buscar en localStorage cualquier pedido pendiente
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('pedido_pendiente_')) {
+                    try {
+                        const pedido = JSON.parse(localStorage.getItem(key));
+                        if (pedido) {
+                            iniciarVerificacion(pedido.id);
+                        }
+                    } catch(e) {}
+                }
+            }
+        }
+
+        // ===== UTILIDADES =====
         function cerrarModal() {
             document.getElementById('pedidoModal').classList.remove('active');
             document.getElementById('clienteNombre').value = '';
             document.getElementById('clienteTelefono').value = '';
+        }
+
+        function cerrarConfirmacion() {
+            document.getElementById('confirmacionModal').classList.remove('active');
         }
 
         function mostrarToast(msg) {
@@ -295,15 +325,28 @@ Gracias por comprar con nosotros 🛍️`;
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // ===== ESCUCHAR CAMBIOS EN PRODUCTOS (desde index.html) =====
+        window.addEventListener('storage', function(e) {
+            if (e.key === STORAGE_KEY) {
+                try {
+                    productos = JSON.parse(e.newValue || '[]');
+                    renderizarProductos();
+                } catch(e) {}
+            }
+            
+            // También escuchar confirmaciones
+            if (e.key === CONFIRMADOS_KEY) {
+                // Ya se maneja por intervalo
+            }
+        });
+
         // ===== INICIALIZAR =====
         window.onload = function() {
             cargarProductos();
             
-            // Intentar cargar nombre del negocio
-            try {
-                const nombre = localStorage.getItem('businessName') || 'Mi Tienda';
-                document.getElementById('businessName').textContent = nombre;
-            } catch(e) {}
+            // Cargar nombre del negocio
+            const nombre = localStorage.getItem('businessName') || 'Mi Tienda';
+            document.getElementById('businessName').textContent = nombre;
         };
     </script>
 </body>
