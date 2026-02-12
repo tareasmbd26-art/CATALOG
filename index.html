@@ -1208,6 +1208,226 @@
         let currentReceipt = null;
 
         // ===== INICIALIZACIÓN =====
+// ===== GESTIÓN DE PEDIDOS DESDE EL CATÁLOGO =====
+const PEDIDOS_KEY = 'pedidos_pendientes';
+const CONFIRMADOS_KEY = 'pedidos_confirmados';
+const STORAGE_KEY = 'catalogo_tienda';
+
+// ===== INICIALIZAR GESTIÓN DE PEDIDOS =====
+function initGestionPedidos() {
+    // Escuchar nuevos pedidos
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'nuevo_pedido_' || (e.key && e.key.startsWith('nuevo_pedido_'))) {
+            cargarPedidosPendientes();
+        }
+        if (e.key === 'notificar_pedido') {
+            cargarPedidosPendientes();
+            actualizarContadorNotificaciones();
+        }
+    });
+    
+    // Cargar pedidos al inicio
+    cargarPedidosPendientes();
+    
+    // Agregar pestaña de "Pedidos" al menú principal
+    agregarModuloPedidos();
+}
+
+// ===== AGREGAR MÓDULO DE PEDIDOS AL MENÚ =====
+function agregarModuloPedidos() {
+    // Esperar a que el DOM esté listo
+    setTimeout(() => {
+        const menuGrid = document.querySelector('.modules-grid');
+        if (menuGrid) {
+            const itemPedidos = document.createElement('div');
+            itemPedidos.className = 'module-item';
+            itemPedidos.setAttribute('onclick', 'showScreen("pedidos-screen")');
+            itemPedidos.innerHTML = `
+                <div class="module-icon">🛒</div>
+                <span>Pedidos</span>
+            `;
+            menuGrid.appendChild(itemPedidos);
+        }
+        
+        // Crear la pantalla de pedidos si no existe
+        if (!document.getElementById('pedidos-screen')) {
+            const pedidosScreen = document.createElement('div');
+            pedidosScreen.id = 'pedidos-screen';
+            pedidosScreen.className = 'screen';
+            pedidosScreen.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <span style="font-size: 28px; cursor: pointer;" onclick="goBack()">←</span>
+                    <h1 style="font-size: 24px; font-weight: 700;">🛒 Pedidos</h1>
+                </div>
+                <div id="pedidosLista" class="list-card"></div>
+            `;
+            document.querySelector('.app-container').appendChild(pedidosScreen);
+        }
+    }, 500);
+}
+
+// ===== CARGAR PEDIDOS PENDIENTES =====
+function cargarPedidosPendientes() {
+    const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
+    const container = document.getElementById('pedidosLista');
+    
+    if (!container) return;
+    
+    if (pedidos.length === 0) {
+        container.innerHTML = '<div class="list-item">No hay pedidos pendientes</div>';
+        return;
+    }
+    
+    let html = '';
+    pedidos.forEach((p, index) => {
+        if (p.estado === 'pendiente') {
+            html += `
+                <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #e9ecf0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-weight: 700;">${p.producto.emoji} ${p.producto.name}</span>
+                        <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Pendiente</span>
+                    </div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">
+                        👤 ${p.cliente} · 📱 ${p.telefono}
+                    </div>
+                    <div style="font-size: 14px; margin-bottom: 12px;">
+                        💰 Total: $${p.total.toFixed(2)} · ${p.cuotas} cuota(s) · $${p.montoPorCuota.toFixed(2)} c/u
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; background: #2ecc71;" onclick="confirmarPedido(${index})">
+                            ✅ Confirmar
+                        </button>
+                        <button class="btn btn-danger" style="flex: 1;" onclick="rechazarPedido(${index})">
+                            ❌ Rechazar
+                        </button>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #6f7b8a;">
+                        📅 ${new Date(p.fecha).toLocaleString()}
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    container.innerHTML = html;
+    actualizarContadorNotificaciones();
+}
+
+// ===== CONFIRMAR PEDIDO =====
+function confirmarPedido(index) {
+    const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
+    const pedido = pedidos[index];
+    
+    if (!pedido) return;
+    
+    // Verificar stock
+    const producto = catalogProducts.find(p => p.id === pedido.producto.id);
+    if (!producto || producto.stock < pedido.cantidad) {
+        showToast('❌ Stock insuficiente');
+        return;
+    }
+    
+    // Restar stock
+    producto.stock -= pedido.cantidad;
+    
+    // Actualizar estado
+    pedido.estado = 'aceptado';
+    pedido.fechaConfirmacion = new Date().toISOString();
+    
+    // Mover a confirmados
+    let confirmados = JSON.parse(localStorage.getItem(CONFIRMADOS_KEY) || '[]');
+    confirmados.unshift(pedido);
+    localStorage.setItem(CONFIRMADOS_KEY, JSON.stringify(confirmados));
+    
+    // Eliminar de pendientes
+    pedidos.splice(index, 1);
+    localStorage.setItem(PEDIDOS_KEY, JSON.stringify(pedidos));
+    
+    // Guardar productos actualizados
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(catalogProducts));
+    
+    // Notificar al catálogo que el pedido fue confirmado
+    localStorage.setItem('confirmado_' + pedido.id, JSON.stringify(pedido));
+    localStorage.removeItem('nuevo_pedido_' + pedido.id);
+    
+    // Crear venta automáticamente
+    crearVentaDesdePedido(pedido);
+    
+    showToast('✅ Pedido confirmado');
+    cargarPedidosPendientes();
+    renderInventory();
+    updateDashboard();
+}
+
+// ===== RECHAZAR PEDIDO =====
+function rechazarPedido(index) {
+    const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
+    const pedido = pedidos[index];
+    
+    pedido.estado = 'rechazado';
+    pedido.fechaRechazo = new Date().toISOString();
+    
+    // Guardar en rechazados (opcional)
+    let rechazados = JSON.parse(localStorage.getItem('pedidos_rechazados') || '[]');
+    rechazados.unshift(pedido);
+    localStorage.setItem('pedidos_rechazados', JSON.stringify(rechazados));
+    
+    // Eliminar de pendientes
+    pedidos.splice(index, 1);
+    localStorage.setItem(PEDIDOS_KEY, JSON.stringify(pedidos));
+    
+    // Notificar rechazo
+    localStorage.setItem('rechazado_' + pedido.id, JSON.stringify(pedido));
+    
+    showToast('❌ Pedido rechazado');
+    cargarPedidosPendientes();
+}
+
+// ===== CREAR VENTA DESDE PEDIDO CONFIRMADO =====
+function crearVentaDesdePedido(pedido) {
+    const venta = {
+        id: ventas.length + 1,
+        factura: `P-${nextFacturaNum}`,
+        fecha: new Date(),
+        cliente: pedido.cliente,
+        producto: pedido.producto.name,
+        emoji: pedido.producto.emoji,
+        cantidad: pedido.cantidad,
+        precioUnitario: pedido.producto.price,
+        subtotal: pedido.producto.price,
+        itbms: pedido.producto.price * 0.07,
+        total: pedido.producto.price * 1.07,
+        metodo: 'Pedido confirmado',
+        cuotas: pedido.cuotas,
+        montoPorCuota: pedido.montoPorCuota
+    };
+    
+    ventas.unshift(venta);
+    nextFacturaNum++;
+    saveToStorage();
+    renderVentas();
+}
+
+// ===== ACTUALIZAR CONTADOR DE NOTIFICACIONES =====
+function actualizarContadorNotificaciones() {
+    const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
+    const pendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+    
+    const badge = document.getElementById('notificationCount');
+    if (badge) {
+        if (pendientes > 0) {
+            badge.textContent = pendientes;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// ===== INICIAR CUANDO CARGUE LA APP =====
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initGestionPedidos, 1000);
+});
         function initializeData() {
             // Cargar datos guardados
             const savedData = localStorage.getItem('quicktreinta_data');
@@ -2131,4 +2351,5 @@ Método de pago: ${venta.metodo}
         });
     </script>
 </body>
+
 </html>
