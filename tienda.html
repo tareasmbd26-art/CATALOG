@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Mi Tienda · Pedidos WhatsApp</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f5f7fb; display: flex; flex-direction: column; align-items: center; padding: 16px; }
+        .container { max-width: 480px; width: 100%; background: white; border-radius: 24px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header { text-align: center; margin-bottom: 24px; }
+        .business-name { font-size: 24px; font-weight: 700; color: #0a1e3c; }
+        .product { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #e9ecf0; display: flex; gap: 16px; }
+        .product-image { width: 80px; height: 80px; background: #f0f2f5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        .product-info { flex: 1; }
+        .product-name { font-weight: 600; font-size: 16px; color: #0a1e3c; }
+        .product-price { font-size: 20px; font-weight: 700; color: #1a5cff; margin: 4px 0; }
+        .product-stock { font-size: 12px; color: #2ecc71; }
+        .btn { width: 100%; padding: 14px; background: #25D366; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn-outline { background: white; border: 2px solid #1a5cff; color: #1a5cff; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .form-group { margin-bottom: 16px; }
+        .form-input { width: 100%; padding: 12px; border: 2px solid #e9ecf0; border-radius: 12px; }
+        .cuota-option { display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e9ecf0; border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
+        .cuota-option.selected { border-color: #1a5cff; background: #f2f6ff; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; z-index: 2000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="business-name" id="businessName">Mi Tienda</div>
+            <div style="color: #6f7b8a; margin-top: 4px;">🛍️ Haz tu pedido por WhatsApp</div>
+        </div>
+
+        <div id="productosLista"></div>
+        
+        <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 16px; text-align: center; color: #6f7b8a;">
+            Pedidos sujetos a disponibilidad de stock.
+        </div>
+    </div>
+
+    <!-- MODAL DE PEDIDO -->
+    <div id="pedidoModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 20px;">📝 Tu pedido</h2>
+                <span style="font-size: 24px; cursor: pointer;" onclick="cerrarModal()">×</span>
+            </div>
+
+            <div id="resumenProducto" style="background: #f2f6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px;"></div>
+
+            <div class="form-group">
+                <label style="font-weight: 600;">Tu nombre</label>
+                <input type="text" class="form-input" id="clienteNombre" placeholder="Ej: Juan Pérez">
+            </div>
+
+            <div class="form-group">
+                <label style="font-weight: 600;">Tu WhatsApp</label>
+                <input type="text" class="form-input" id="clienteTelefono" placeholder="6000-0000">
+            </div>
+
+            <div style="font-weight: 600; margin-bottom: 8px;">💰 Método de pago</div>
+            
+            <div class="cuota-option selected" id="pagoCompleto" onclick="seleccionarCuotas(1)">
+                <span style="font-size: 20px;">✅</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">Pago completo</div>
+                    <div style="font-size: 13px; color: #6f7b8a;">Paga el total hoy</div>
+                </div>
+                <div style="font-weight: 700; color: #1a5cff;" id="totalCompleto">$0.00</div>
+            </div>
+
+            <div class="cuota-option" id="pago2Cuotas" onclick="seleccionarCuotas(2)">
+                <span style="font-size: 20px;">🔄</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">2 cuotas</div>
+                    <div style="font-size: 13px; color: #6f7b8a;">50% hoy, 50% en 15 días</div>
+                </div>
+                <div style="font-weight: 700;" id="total2Cuotas">$0.00</div>
+            </div>
+
+            <div class="cuota-option" id="pago3Cuotas" onclick="seleccionarCuotas(3)">
+                <span style="font-size: 20px;">🔄</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">3 cuotas</div>
+                    <div style="font-size: 13px; color: #6f7b8a;">33% hoy, 2 pagos quincenales</div>
+                </div>
+                <div style="font-weight: 700;" id="total3Cuotas">$0.00</div>
+            </div>
+
+            <div class="cuota-option" id="pago4Cuotas" onclick="seleccionarCuotas(4)">
+                <span style="font-size: 20px;">🔄</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">4 cuotas</div>
+                    <div style="font-size: 13px; color: #6f7b8a;">25% hoy, 3 pagos quincenales</div>
+                </div>
+                <div style="font-weight: 700;" id="total4Cuotas">$0.00</div>
+            </div>
+
+            <button class="btn" onclick="enviarPedido()" style="margin-top: 24px;">
+                📲 Enviar pedido por WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        const TIENDA_ID = 'tareasmbd26-art';
+        const VENDEDOR_WHATSAPP = '50768138145'; // 🔴 CAMBIA ESTO: pon el número del vendedor (TÚ)
+        
+        // ===== PRODUCTOS (IGUAL QUE EN TU APP) =====
+        let productos = [
+            { id: 1, name: "Pan francés", description: "Pan fresco del día", price: 2.50, stock: 98, emoji: "🥖" },
+            { id: 2, name: "Pastel de fresa", description: "Delicioso pastel casero", price: 15.00, stock: 23, emoji: "🍰" }
+        ];
+
+        let productoSeleccionado = null;
+        let cuotasSeleccionadas = 1;
+
+        // ===== CARGAR PRODUCTOS =====
+        function cargarProductos() {
+            const container = document.getElementById('productosLista');
+            let html = '';
+            
+            productos.forEach(p => {
+                if (p.stock > 0) {
+                    html += `
+                        <div class="product">
+                            <div class="product-image">${p.emoji}</div>
+                            <div class="product-info">
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-description" style="color: #6f7b8a; font-size: 13px;">${p.description}</div>
+                                <div class="product-price">$${p.price.toFixed(2)}</div>
+                                <div class="product-stock">✓ Stock disponible</div>
+                                <button class="btn" onclick="abrirModalPedido(${p.id})">
+                                    📲 Pedir ahora
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // ===== ABRIR MODAL DE PEDIDO =====
+        function abrirModalPedido(productId) {
+            productoSeleccionado = productos.find(p => p.id === productId);
+            if (!productoSeleccionado) return;
+            
+            // Mostrar resumen del producto
+            document.getElementById('resumenProducto').innerHTML = `
+                <div style="display: flex; gap: 12px;">
+                    <div style="font-size: 32px;">${productoSeleccionado.emoji}</div>
+                    <div>
+                        <div style="font-weight: 600;">${productoSeleccionado.name}</div>
+                        <div style="font-size: 13px; color: #6f7b8a;">${productoSeleccionado.description}</div>
+                        <div style="font-weight: 700; color: #1a5cff; margin-top: 4px;">$${productoSeleccionado.price.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Calcular totales para cada opción de pago
+            const total = productoSeleccionado.price;
+            document.getElementById('totalCompleto').innerHTML = `$${total.toFixed(2)}`;
+            document.getElementById('total2Cuotas').innerHTML = `$${(total/2).toFixed(2)} c/u`;
+            document.getElementById('total3Cuotas').innerHTML = `$${(total/3).toFixed(2)} c/u`;
+            document.getElementById('total4Cuotas').innerHTML = `$${(total/4).toFixed(2)} c/u`;
+            
+            // Resetear selección
+            cuotasSeleccionadas = 1;
+            seleccionarCuotas(1);
+            
+            document.getElementById('pedidoModal').classList.add('active');
+        }
+
+        // ===== SELECCIONAR NÚMERO DE CUOTAS =====
+        function seleccionarCuotas(numero) {
+            cuotasSeleccionadas = numero;
+            
+            // Quitar selección de todas
+            document.querySelectorAll('.cuota-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Seleccionar la correspondiente
+            document.getElementById(`pago${numero === 1 ? 'Completo' : numero + 'Cuotas'}`).classList.add('selected');
+        }
+
+        // ===== ENVIAR PEDIDO POR WHATSAPP =====
+        function enviarPedido() {
+            const nombre = document.getElementById('clienteNombre').value.trim();
+            const telefono = document.getElementById('clienteTelefono').value.trim();
+            
+            if (!nombre || !telefono) {
+                alert('⚠️ Por favor ingresa tu nombre y WhatsApp');
+                return;
+            }
+            
+            if (!productoSeleccionado) return;
+            
+            const total = productoSeleccionado.price;
+            const montoPorCuota = total / cuotasSeleccionadas;
+            
+            // ===== MENSAJE PARA EL VENDEDOR (TÚ) =====
+            const mensajeVendedor = `🛒 *NUEVO PEDIDO*
+━━━━━━━━━━━━━━
+👤 *Cliente:* ${nombre}
+📱 *WhatsApp:* ${telefono}
+━━━━━━━━━━━━━━
+📦 *Producto:* ${productoSeleccionado.emoji} ${productoSeleccionado.name}
+💰 *Precio:* $${total.toFixed(2)}
+━━━━━━━━━━━━━━
+💳 *Pago:* ${cuotasSeleccionadas} ${cuotasSeleccionadas === 1 ? 'cuota' : 'cuotas'}
+💵 *Monto por cuota:* $${montoPorCuota.toFixed(2)}
+🕐 *Primer pago:* Hoy
+━━━━━━━━━━━━━━
+✅ *Para confirmar:*
+1. Espera la confirmación del vendedor
+2. Realiza el primer pago
+3. Recibirás tus productos
+
+🔗 *Ver pedido:* https://tareasmbd26-art.github.io/CATALOG/`;
+
+            // ===== MENSAJE PARA EL CLIENTE (CONFIRMACIÓN) =====
+            const mensajeCliente = `✅ *Hola ${nombre}!*
+Tu pedido ha sido *enviado* al vendedor.
+
+━━━━━━━━━━━━━━
+📦 *Tu pedido:*
+${productoSeleccionado.emoji} ${productoSeleccionado.name}
+💰 $${total.toFixed(2)}
+
+💳 *Pago:* ${cuotasSeleccionadas} ${cuotasSeleccionadas === 1 ? 'cuota' : 'cuotas'}
+💵 *${cuotasSeleccionadas === 1 ? 'Pago único' : 'Primer pago:'}* $${montoPorCuota.toFixed(2)}
+━━━━━━━━━━━━━━
+
+⏳ *El vendedor te confirmará el pedido en breve.*
+Gracias por comprar con nosotros 🛍️`;
+
+            // ===== 1. ENVIAR AL VENDEDOR (TÚ) =====
+            const urlVendedor = `https://wa.me/${VENDEDOR_WHATSAPP}?text=${encodeURIComponent(mensajeVendedor)}`;
+            window.open(urlVendedor, '_blank');
+            
+            // ===== 2. ENVIAR CONFIRMACIÓN AL CLIENTE =====
+            setTimeout(() => {
+                const urlCliente = `https://wa.me/${telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(mensajeCliente)}`;
+                window.open(urlCliente, '_blank');
+            }, 1000);
+            
+            // ===== 3. GUARDAR PEDIDO LOCALMENTE =====
+            guardarPedidoLocal({
+                id: Date.now(),
+                cliente: nombre,
+                telefono: telefono,
+                producto: productoSeleccionado,
+                total: total,
+                cuotas: cuotasSeleccionadas,
+                montoPorCuota: montoPorCuota,
+                fecha: new Date().toISOString(),
+                estado: 'pendiente'
+            });
+            
+            cerrarModal();
+            mostrarToast('✅ Pedido enviado! Revisa WhatsApp');
+        }
+
+        // ===== GUARDAR PEDIDO EN LOCALSTORAGE =====
+        function guardarPedidoLocal(pedido) {
+            let pedidos = JSON.parse(localStorage.getItem(`pedidos_${TIENDA_ID}`) || '[]');
+            pedidos.unshift(pedido);
+            localStorage.setItem(`pedidos_${TIENDA_ID}`, JSON.stringify(pedidos));
+            
+            // También guardar en el storage de la app de gestión
+            try {
+                localStorage.setItem('ultimo_pedido', JSON.stringify(pedido));
+            } catch(e) {}
+        }
+
+        function cerrarModal() {
+            document.getElementById('pedidoModal').classList.remove('active');
+            document.getElementById('clienteNombre').value = '';
+            document.getElementById('clienteTelefono').value = '';
+        }
+
+        function mostrarToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ===== INICIALIZAR =====
+        window.onload = function() {
+            cargarProductos();
+            
+            // Intentar cargar nombre del negocio
+            try {
+                const nombre = localStorage.getItem('businessName') || 'Mi Tienda';
+                document.getElementById('businessName').textContent = nombre;
+            } catch(e) {}
+        };
+    </script>
+</body>
+</html>
