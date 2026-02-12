@@ -3,65 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Mi Tienda · Administrador</title>
+    <title>Mi Tienda · Admin</title>
     <style>
-        /* ===== ESTILOS COMPACTOS Y PROFESIONALES ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fb; display: flex; flex-direction: column; align-items: center; }
-        .app-container { max-width: 480px; width: 100%; background: white; min-height: 100vh; position: relative; }
-        
+        .app-container { max-width: 480px; width: 100%; background: white; min-height: 100vh; }
         .screen { display: none; padding: 16px 16px 80px; }
         .active-screen { display: block; }
-        
-        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f2f5; position: sticky; top: 0; z-index: 10; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f2f5; }
         .logo-area { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .logo-icon { background: linear-gradient(145deg, #1a5cff, #0a3eb0); color: white; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .logo-text { font-weight: 700; font-size: 18px; color: #0b1b33; }
         .header-actions { display: flex; gap: 16px; }
         .icon-btn { font-size: 20px; cursor: pointer; position: relative; }
         .notification-badge { position: absolute; top: -4px; right: -4px; background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; }
-        
-        .dashboard-card { background: linear-gradient(135deg, #f2f6ff, white); border-radius: 24px; padding: 20px; margin-bottom: 24px; border: 1px solid #e9ecf0; }
-        .stats-row { display: flex; justify-content: space-between; background: white; padding: 16px; border-radius: 18px; margin-top: 12px; }
-        .stat-item { text-align: center; flex: 1; }
-        .stat-number { font-size: 22px; font-weight: 700; color: #0b1b33; }
-        
-        .section-title { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 12px; }
-        .section-title h2 { font-size: 18px; font-weight: 600; color: #0a1e3c; }
-        .section-title a { color: #1a5cff; font-weight: 500; cursor: pointer; }
-        
-        .btn { padding: 12px 20px; background: linear-gradient(135deg, #1a5cff, #0a3eb0); color: white; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; }
+        .btn { padding: 12px 20px; background: #1a5cff; color: white; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; }
         .btn-small { padding: 8px 16px; font-size: 13px; }
-        .btn-outline { background: white; border: 2px solid #1a5cff; color: #1a5cff; }
         .btn-success { background: #2ecc71; }
         .btn-danger { background: #e74c3c; }
-        
-        .list-card { background: white; border-radius: 20px; padding: 4px 0; border: 1px solid #f0f2f5; margin-bottom: 16px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #f5f7fb; }
-        .list-item:last-child { border-bottom: none; }
-        
+        .btn-outline { background: white; border: 2px solid #1a5cff; color: #1a5cff; }
         .producto-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #e9ecf0; display: flex; gap: 16px; }
         .producto-emoji { width: 64px; height: 64px; background: #f0f2f5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
         .producto-info { flex: 1; }
         .producto-nombre { font-weight: 600; font-size: 16px; }
-        .producto-precio { font-size: 18px; font-weight: 700; color: #1a5cff; margin: 4px 0; }
+        .producto-precio { font-size: 18px; font-weight: 700; color: #1a5cff; }
         .producto-stock { font-size: 13px; color: #2ecc71; }
-        .producto-acciones { display: flex; gap: 8px; margin-top: 12px; }
-        
+        .list-card { background: white; border-radius: 20px; border: 1px solid #f0f2f5; margin-bottom: 16px; }
+        .list-item { display: flex; justify-content: space-between; padding: 16px; border-bottom: 1px solid #f5f7fb; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
         .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .form-group { margin-bottom: 16px; }
-        .form-input { width: 100%; padding: 14px; border: 2px solid #e9ecf0; border-radius: 14px; font-size: 15px; }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid #e9ecf0; display: flex; padding: 8px 0; z-index: 100; }
+        .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; }
+        .form-input { width: 100%; padding: 14px; border: 2px solid #e9ecf0; border-radius: 14px; margin-bottom: 16px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid #e9ecf0; display: flex; padding: 8px 0; }
         .nav-item { display: flex; flex-direction: column; align-items: center; flex: 1; padding: 8px; cursor: pointer; color: #8a92a3; }
         .nav-item.active { color: #1a5cff; }
         .nav-icon { font-size: 22px; }
-        
-        .badge-pendiente { background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        .badge-completo { background: #2ecc71; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        .badge-deuda { background: #e74c3c; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; z-index: 2000; }
     </style>
 </head>
@@ -69,285 +45,192 @@
     <div class="app-container">
         <!-- HEADER -->
         <div class="app-header">
-            <div class="logo-area" onclick="openEditNombreModal()">
+            <div class="logo-area" onclick="cambiarNombreTienda()">
                 <div class="logo-icon">🏪</div>
                 <div class="logo-text" id="businessNameDisplay">Mi Tienda</div>
             </div>
             <div class="header-actions">
-                <span class="icon-btn" onclick="openNotificacionesModal()">
+                <span class="icon-btn" onclick="verNotificaciones()">
                     🔔
                     <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
                 </span>
             </div>
         </div>
 
-        <!-- ===== PANTALLA PRINCIPAL: CATÁLOGO (ADMINISTRAR PRODUCTOS) ===== -->
+        <!-- PANTALLA CATÁLOGO -->
         <div id="catalogo-screen" class="screen active-screen">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                <h1 style="font-size: 24px; font-weight: 700;">📱 Catálogo</h1>
-                <button class="btn btn-small" onclick="openAgregarProductoModal()">+ Agregar</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="font-size: 24px;">📱 Catálogo</h1>
+                <button class="btn-small" onclick="abrirModalProducto()">+ Agregar</button>
             </div>
-            
-            <!-- Link del catálogo público -->
-            <div style="background: #f2f6ff; border-radius: 16px; padding: 16px; margin-bottom: 24px;">
-                <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">🌐 Link de tu tienda:</div>
+
+            <!-- LINK DEL CATÁLOGO - AHORA SÍ VISIBLE -->
+            <div style="background: #f2f6ff; border-radius: 20px; padding: 20px; margin-bottom: 24px; border: 2px solid #1a5cff;">
+                <div style="font-weight: 700; margin-bottom: 12px;">🌐 LINK DE TU TIENDA:</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="catalogLink" readonly value="cargando..." style="flex: 1; padding: 14px; border: 1px solid #ccc; border-radius: 12px; background: white;">
+                    <button class="btn-small" onclick="copiarLink()" style="background: #1a5cff; color: white;">📋 Copiar</button>
+                </div>
                 <div style="display: flex; gap: 8px;">
-                    <input type="text" class="form-input" id="catalogLink" readonly value="cargando..." style="background: white; font-size: 13px;">
-                    <button class="btn-small" style="background: #1a5cff; color: white; border: none; border-radius: 12px; padding: 0 16px;" onclick="copiarLink()">Copiar</button>
-                </div>
-                <div style="margin-top: 8px; font-size: 12px; color: #1a5cff;">
-                    🔄 Los cambios se reflejan automáticamente
+                    <button class="btn-small" onclick="compartirWhatsApp()" style="background: #25D366; color: white; flex: 1;">📲 WhatsApp</button>
+                    <button class="btn-small" onclick="compartirFacebook()" style="background: #1877F2; color: white; flex: 1;">📘 Facebook</button>
                 </div>
             </div>
-            
-            <!-- Lista de productos -->
-            <div class="section-title">
-                <h2>Tus productos</h2>
-            </div>
+
+            <h2 style="font-size: 18px; margin-bottom: 12px;">Tus productos</h2>
             <div id="productosLista"></div>
-            
-            <!-- Si no hay productos -->
-            <div id="productosEmpty" style="display: none; text-align: center; padding: 40px; color: #6f7b8a;">
-                🏪 No tienes productos<br>
-                <button class="btn btn-small" style="margin-top: 16px;" onclick="openAgregarProductoModal()">+ Agregar primer producto</button>
-            </div>
+            <div id="productosEmpty" style="display: none; text-align: center; padding: 40px; color: #999;">No hay productos</div>
         </div>
 
-        <!-- ===== PANTALLA: PEDIDOS ===== -->
+        <!-- PANTALLA PEDIDOS -->
         <div id="pedidos-screen" class="screen">
             <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-                <span style="font-size: 28px; cursor: pointer;" onclick="goBack()">←</span>
-                <h1 style="font-size: 24px; font-weight: 700;">🛒 Pedidos</h1>
+                <span style="font-size: 28px; cursor: pointer;" onclick="showScreen('catalogo-screen')">←</span>
+                <h1 style="font-size: 24px;">🛒 Pedidos</h1>
             </div>
-            <div id="pedidosLista" class="list-card">
-                <div class="list-item">Cargando pedidos...</div>
-            </div>
+            <div id="pedidosLista">Cargando...</div>
         </div>
 
-        <!-- ===== PANTALLA: VENTAS / LIBRO DE CUENTAS ===== -->
+        <!-- PANTALLA VENTAS -->
         <div id="ventas-screen" class="screen">
             <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-                <span style="font-size: 28px; cursor: pointer;" onclick="goBack()">←</span>
-                <h1 style="font-size: 24px; font-weight: 700;">💰 Ventas</h1>
+                <span style="font-size: 28px; cursor: pointer;" onclick="showScreen('catalogo-screen')">←</span>
+                <h1 style="font-size: 24px;">💰 Ventas</h1>
             </div>
-            
-            <!-- Resumen de cuentas -->
-            <div class="dashboard-card" style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-                    <div>
-                        <div style="font-size: 13px; color: #6f7b8a;">Total ventas</div>
-                        <div style="font-size: 28px; font-weight: 700;" id="totalVentas">$0</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 13px; color: #6f7b8a;">Por cobrar</div>
-                        <div style="font-size: 28px; font-weight: 700; color: #e74c3c;" id="totalPorCobrar">$0</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Historial de ventas -->
-            <div class="section-title">
-                <h2>Historial</h2>
-            </div>
-            <div id="ventasLista" class="list-card"></div>
+            <div id="ventasLista">Cargando...</div>
         </div>
 
-        <!-- ===== PANTALLA: CLIENTES / DEUDORES ===== -->
+        <!-- PANTALLA CLIENTES -->
         <div id="clientes-screen" class="screen">
             <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-                <span style="font-size: 28px; cursor: pointer;" onclick="goBack()">←</span>
-                <h1 style="font-size: 24px; font-weight: 700;">👥 Clientes</h1>
+                <span style="font-size: 28px; cursor: pointer;" onclick="showScreen('catalogo-screen')">←</span>
+                <h1 style="font-size: 24px;">👥 Clientes</h1>
             </div>
-            <div id="clientesLista" class="list-card"></div>
+            <div id="clientesLista">Cargando...</div>
         </div>
 
-        <!-- ===== BARRA DE NAVEGACIÓN ===== -->
+        <!-- NAVEGACIÓN -->
         <div class="bottom-nav">
-            <div class="nav-item active" onclick="showScreen('catalogo-screen')">
-                <span class="nav-icon">📱</span>
-                <span>Catálogo</span>
-            </div>
-            <div class="nav-item" onclick="showScreen('pedidos-screen')">
-                <span class="nav-icon">🛒</span>
-                <span>Pedidos</span>
-            </div>
-            <div class="nav-item" onclick="showScreen('ventas-screen')">
-                <span class="nav-icon">💰</span>
-                <span>Ventas</span>
-            </div>
-            <div class="nav-item" onclick="showScreen('clientes-screen')">
-                <span class="nav-icon">👥</span>
-                <span>Clientes</span>
-            </div>
+            <div class="nav-item active" onclick="showScreen('catalogo-screen')">📱<span>Catálogo</span></div>
+            <div class="nav-item" onclick="showScreen('pedidos-screen')">🛒<span>Pedidos</span></div>
+            <div class="nav-item" onclick="showScreen('ventas-screen')">💰<span>Ventas</span></div>
+            <div class="nav-item" onclick="showScreen('clientes-screen')">👥<span>Clientes</span></div>
         </div>
 
-        <!-- ===== MODALES ===== -->
-
-        <!-- Modal: Agregar/Editar Producto -->
+        <!-- MODAL PRODUCTO -->
         <div id="productoModal" class="modal">
             <div class="modal-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 id="modalProductoTitulo" style="font-size: 20px;">➕ Agregar producto</h2>
-                    <span style="font-size: 24px; cursor: pointer;" onclick="cerrarProductoModal()">×</span>
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: 600;">Nombre</label>
-                    <input type="text" class="form-input" id="productoNombre" placeholder="Ej: Pan francés">
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: 600;">Descripción</label>
-                    <input type="text" class="form-input" id="productoDescripcion" placeholder="Breve descripción">
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: 600;">Precio ($)</label>
-                    <input type="number" class="form-input" id="productoPrecio" placeholder="0.00" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: 600;">Stock (cantidad)</label>
-                    <input type="number" class="form-input" id="productoStock" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label style="font-weight: 600;">Emoji</label>
-                    <input type="text" class="form-input" id="productoEmoji" placeholder="🥖" maxlength="2">
-                </div>
-                <button class="btn" id="btnGuardarProducto" onclick="guardarProducto()">Guardar producto</button>
+                <h2 id="modalTitulo">➕ Agregar producto</h2>
+                <input type="text" id="productoNombre" class="form-input" placeholder="Nombre">
+                <input type="text" id="productoDescripcion" class="form-input" placeholder="Descripción">
+                <input type="number" id="productoPrecio" class="form-input" placeholder="Precio">
+                <input type="number" id="productoStock" class="form-input" placeholder="Stock">
+                <input type="text" id="productoEmoji" class="form-input" placeholder="Emoji 🥖" maxlength="2">
+                <button class="btn" onclick="guardarProducto()" style="width: 100%;">Guardar</button>
             </div>
         </div>
 
-        <!-- Modal: Confirmar pedido (pago parcial/completo) -->
-        <div id="confirmarPedidoModal" class="modal">
+        <!-- MODAL CONFIRMAR PEDIDO -->
+        <div id="confirmarModal" class="modal">
             <div class="modal-content">
-                <h2 style="font-size: 20px; margin-bottom: 16px;">✅ Confirmar pedido</h2>
-                <div id="pedidoConfirmarInfo" style="background: #f2f6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px;"></div>
-                
-                <div style="font-weight: 600; margin-bottom: 12px;">💰 Estado de pago:</div>
-                
-                <div style="display: flex; gap: 8px; margin-bottom: 24px;">
-                    <button id="btnPagoCompleto" class="btn btn-success" style="flex: 1;" onclick="seleccionarPagoCompleto()">✅ Completo</button>
-                    <button id="btnPagoParcial" class="btn btn-outline" style="flex: 1;" onclick="seleccionarPagoParcial()">🔄 Parcial</button>
+                <h2 style="margin-bottom: 16px;">✅ Confirmar pedido</h2>
+                <div id="confirmarInfo" style="background: #f2f6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px;"></div>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <button id="btnPagoCompleto" class="btn-success" style="flex: 1; padding: 12px;" onclick="seleccionarPago(true)">✅ Completo</button>
+                    <button id="btnPagoParcial" class="btn-outline" style="flex: 1; padding: 12px;" onclick="seleccionarPago(false)">🔄 2 cuotas</button>
                 </div>
-                
-                <div id="pagoParcialInfo" style="display: none; background: #fff3cd; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
-                    ⚠️ El cliente pagará el resto después.
-                </div>
-                
-                <button class="btn" onclick="ejecutarConfirmacionPedido()">Confirmar pedido</button>
-            </div>
-        </div>
-
-        <!-- Modal: Registrar pago -->
-        <div id="registrarPagoModal" class="modal">
-            <div class="modal-content">
-                <h2 style="font-size: 20px; margin-bottom: 16px;">💰 Registrar pago</h2>
-                <div id="pagoClienteInfo" style="margin-bottom: 16px;"></div>
-                <div class="form-group">
-                    <label style="font-weight: 600;">Monto a pagar</label>
-                    <input type="number" class="form-input" id="montoPago" placeholder="0.00" step="0.01">
-                </div>
-                <button class="btn" onclick="registrarPago()">Registrar pago</button>
+                <button class="btn" onclick="confirmarPedido()" style="width: 100%;">Confirmar pedido</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ===== 🚀 SISTEMA SIMPLIFICADO: CATÁLOGO + VENTAS + CLIENTES =====
+        // ========== VARIABLES GLOBALES ==========
+        const STORAGE_PRODUCTOS = 'catalogo_productos';
+        const STORAGE_PEDIDOS = 'pedidos_pendientes';
+        const STORAGE_VENTAS = 'ventas_registradas';
+        const STORAGE_CLIENTES = 'clientes_registrados';
         
-        // ===== 1. CONFIGURACIÓN Y VARIABLES GLOBALES =====
-        const STORAGE_KEY = 'catalogo_productos';
-        const PEDIDOS_KEY = 'pedidos_pendientes';
-        const VENTAS_KEY = 'ventas_registradas';
-        const CLIENTES_KEY = 'clientes_registrados';
-        
-        let productoEnEdicion = null;
+        let productoEditandoId = null;
+        let pedidoSeleccionado = null;
+        let pagoEsCompleto = true;
 
-        // ===== 2. INICIALIZACIÓN =====
+        // ========== INICIALIZACIÓN ==========
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Sistema iniciado');
-            
-            // Cargar o inicializar datos
-            if (!localStorage.getItem(STORAGE_KEY)) {
-                // Productos de ejemplo
+            if (!localStorage.getItem(STORAGE_PRODUCTOS)) {
                 const productosIniciales = [
-                    { id: 1, name: "Pan francés", description: "Pan fresco del día", price: 2.50, stock: 98, emoji: "🥖" },
-                    { id: 2, name: "Pastel de fresa", description: "Delicioso pastel casero", price: 15.00, stock: 23, emoji: "🍰" }
+                    { id: 1, nombre: "Pan francés", descripcion: "Pan fresco del día", precio: 2.50, stock: 98, emoji: "🥖" },
+                    { id: 2, nombre: "Pastel de fresa", descripcion: "Delicioso pastel casero", precio: 15.00, stock: 23, emoji: "🍰" }
                 ];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(productosIniciales));
+                localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productosIniciales));
             }
+            if (!localStorage.getItem(STORAGE_PEDIDOS)) localStorage.setItem(STORAGE_PEDIDOS, '[]');
+            if (!localStorage.getItem(STORAGE_VENTAS)) localStorage.setItem(STORAGE_VENTAS, '[]');
+            if (!localStorage.getItem(STORAGE_CLIENTES)) localStorage.setItem(STORAGE_CLIENTES, '[]');
             
-            if (!localStorage.getItem(CLIENTES_KEY)) {
-                localStorage.setItem(CLIENTES_KEY, '[]');
-            }
-            
-            if (!localStorage.getItem(VENTAS_KEY)) {
-                localStorage.setItem(VENTAS_KEY, '[]');
-            }
-            
-            // Actualizar UI
-            actualizarCatalogo();
             actualizarLink();
-            cargarPedidos();
-            cargarVentas();
-            cargarClientes();
+            actualizarCatalogo();
+            actualizarPedidos();
+            actualizarNotificaciones();
             
-            // Escuchar cambios en tiempo real
             window.addEventListener('storage', function(e) {
-                if (e.key === STORAGE_KEY) actualizarCatalogo();
-                if (e.key === PEDIDOS_KEY) {
-                    cargarPedidos();
-                    actualizarNotificaciones();
-                }
-                if (e.key === 'nuevo_pedido') {
-                    cargarPedidos();
-                    actualizarNotificaciones();
-                    showToast('🛒 Nuevo pedido recibido');
-                }
+                if (e.key === STORAGE_PEDIDOS) { actualizarPedidos(); actualizarNotificaciones(); }
             });
         });
 
-        // ===== 3. CATÁLOGO: CORAZÓN DEL SISTEMA =====
-        function actualizarCatalogo() {
-            const productos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            const container = document.getElementById('productosLista');
-            const emptyMsg = document.getElementById('productosEmpty');
-            
-            if (!container) return;
-            
-            if (productos.length === 0) {
-                container.innerHTML = '';
-                emptyMsg.style.display = 'block';
-                return;
-            }
-            
-            emptyMsg.style.display = 'none';
-            
-            let html = '';
-            productos.forEach(p => {
-                html += `
-                    <div class="producto-card">
-                        <div class="producto-emoji">${p.emoji || '📦'}</div>
-                        <div class="producto-info">
-                            <div class="producto-nombre">${p.name}</div>
-                            <div style="color: #6f7b8a; font-size: 13px;">${p.description || ''}</div>
-                            <div class="producto-precio">$${p.price.toFixed(2)}</div>
-                            <div class="producto-stock">📦 Stock: ${p.stock} uds</div>
-                            <div class="producto-acciones">
-                                <button class="btn-small" style="background: #f39c12;" onclick="editarProducto(${p.id})">✏️ Editar</button>
-                                <button class="btn-small" style="background: #e74c3c;" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            // Actualizar contador en home
-            document.getElementById('totalProductos').innerHTML = productos.length;
+        // ========== LINK DEL CATÁLOGO ==========
+        function actualizarLink() {
+            const link = 'https://tareasmbd26-art.github.io/CATALOG/tienda.html';
+            localStorage.setItem('catalogLink', link);
+            document.getElementById('catalogLink').value = link;
+        }
+        function copiarLink() { 
+            let link = document.getElementById('catalogLink');
+            link.select(); document.execCommand('copy'); 
+            toast('📋 Link copiado'); 
+        }
+        function compartirWhatsApp() { 
+            let link = document.getElementById('catalogLink').value;
+            let nombre = localStorage.getItem('businessName') || 'Mi Tienda';
+            window.open(`https://wa.me/?text=${encodeURIComponent(`🛍️ ${nombre}\n🔗 ${link}`)}`, '_blank');
+        }
+        function compartirFacebook() {
+            let link = document.getElementById('catalogLink').value;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
         }
 
-        function openAgregarProductoModal() {
-            productoEnEdicion = null;
-            document.getElementById('modalProductoTitulo').innerHTML = '➕ Agregar producto';
+        // ========== CATÁLOGO ==========
+        function actualizarCatalogo() {
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            let container = document.getElementById('productosLista');
+            if (!container) return;
+            if (productos.length === 0) {
+                document.getElementById('productosEmpty').style.display = 'block';
+                container.innerHTML = '';
+                return;
+            }
+            document.getElementById('productosEmpty').style.display = 'none';
+            let html = '';
+            productos.forEach(p => {
+                html += `<div class="producto-card">
+                    <div class="producto-emoji">${p.emoji || '📦'}</div>
+                    <div class="producto-info">
+                        <div class="producto-nombre">${p.nombre}</div>
+                        <div style="color: #666; font-size: 13px;">${p.descripcion || ''}</div>
+                        <div class="producto-precio">$${p.precio.toFixed(2)}</div>
+                        <div class="producto-stock">📦 Stock: ${p.stock} uds</div>
+                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                            <button class="btn-small" style="background: #f39c12;" onclick="editarProducto(${p.id})">✏️ Editar</button>
+                            <button class="btn-small" style="background: #e74c3c;" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+        function abrirModalProducto() {
+            productoEditandoId = null;
+            document.getElementById('modalTitulo').innerText = '➕ Agregar producto';
             document.getElementById('productoNombre').value = '';
             document.getElementById('productoDescripcion').value = '';
             document.getElementById('productoPrecio').value = '';
@@ -355,482 +238,267 @@
             document.getElementById('productoEmoji').value = '';
             document.getElementById('productoModal').classList.add('active');
         }
-
         function editarProducto(id) {
-            const productos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            const producto = productos.find(p => p.id === id);
-            if (!producto) return;
-            
-            productoEnEdicion = producto;
-            document.getElementById('modalProductoTitulo').innerHTML = '✏️ Editar producto';
-            document.getElementById('productoNombre').value = producto.name;
-            document.getElementById('productoDescripcion').value = producto.description || '';
-            document.getElementById('productoPrecio').value = producto.price;
-            document.getElementById('productoStock').value = producto.stock;
-            document.getElementById('productoEmoji').value = producto.emoji || '';
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            let p = productos.find(p => p.id === id);
+            if (!p) return;
+            productoEditandoId = id;
+            document.getElementById('modalTitulo').innerText = '✏️ Editar producto';
+            document.getElementById('productoNombre').value = p.nombre;
+            document.getElementById('productoDescripcion').value = p.descripcion || '';
+            document.getElementById('productoPrecio').value = p.precio;
+            document.getElementById('productoStock').value = p.stock;
+            document.getElementById('productoEmoji').value = p.emoji || '';
             document.getElementById('productoModal').classList.add('active');
         }
-
+        function eliminarProducto(id) {
+            if (!confirm('¿Eliminar producto?')) return;
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            productos = productos.filter(p => p.id !== id);
+            localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
+            actualizarCatalogo();
+            localStorage.setItem('catalogo_actualizado', Date.now());
+            toast('🗑️ Producto eliminado');
+        }
         function guardarProducto() {
-            const nombre = document.getElementById('productoNombre').value.trim();
-            const precio = parseFloat(document.getElementById('productoPrecio').value);
-            const stock = parseInt(document.getElementById('productoStock').value);
-            
-            if (!nombre || !precio || !stock) {
-                showToast('⚠️ Completa nombre, precio y stock');
-                return;
-            }
-            
-            const productos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            
-            const producto = {
-                id: productoEnEdicion ? productoEnEdicion.id : Date.now(),
-                name: nombre,
-                description: document.getElementById('productoDescripcion').value.trim() || 'Sin descripción',
-                price: precio,
+            let nombre = document.getElementById('productoNombre').value.trim();
+            let precio = parseFloat(document.getElementById('productoPrecio').value);
+            let stock = parseInt(document.getElementById('productoStock').value);
+            if (!nombre || !precio || !stock) { toast('⚠️ Completa todos los campos'); return; }
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            let producto = {
+                id: productoEditandoId || Date.now(),
+                nombre: nombre,
+                descripcion: document.getElementById('productoDescripcion').value.trim() || 'Sin descripción',
+                precio: precio,
                 stock: stock,
                 emoji: document.getElementById('productoEmoji').value.trim() || '📦'
             };
-            
-            if (productoEnEdicion) {
-                // Editar: reemplazar
-                const index = productos.findIndex(p => p.id === productoEnEdicion.id);
+            if (productoEditandoId) {
+                let index = productos.findIndex(p => p.id === productoEditandoId);
                 productos[index] = producto;
-            } else {
-                // Nuevo: agregar
-                productos.push(producto);
-            }
-            
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
+            } else productos.push(producto);
+            localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
             actualizarCatalogo();
-            cerrarProductoModal();
-            showToast(productoEnEdicion ? '✅ Producto actualizado' : '✅ Producto agregado');
-            
-            // Forzar actualización en el catálogo público
-            localStorage.setItem('catalogo_actualizado', Date.now().toString());
-        }
-
-        function eliminarProducto(id) {
-            if (confirm('¿Eliminar este producto?')) {
-                const productos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                const nuevos = productos.filter(p => p.id !== id);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(nuevos));
-                actualizarCatalogo();
-                showToast('🗑️ Producto eliminado');
-                localStorage.setItem('catalogo_actualizado', Date.now().toString());
-            }
-        }
-
-        function cerrarProductoModal() {
             document.getElementById('productoModal').classList.remove('active');
+            localStorage.setItem('catalogo_actualizado', Date.now());
+            toast(productoEditandoId ? '✅ Producto actualizado' : '✅ Producto agregado');
         }
 
-        // ===== 4. LINK DEL CATÁLOGO PÚBLICO =====
-        function actualizarLink() {
-            const businessName = localStorage.getItem('businessName') || 'Mi Tienda';
-            const link = `https://tareasmbd26-art.github.io/CATALOG/tienda.html`;
-            document.getElementById('catalogLink').value = link;
-            localStorage.setItem('catalogLink', link);
-        }
-
-        function copiarLink() {
-            const link = document.getElementById('catalogLink');
-            link.select();
-            document.execCommand('copy');
-            showToast('📋 Link copiado');
-        }
-
-        // ===== 5. PEDIDOS: RECIBIR Y CONFIRMAR =====
-        function cargarPedidos() {
-            const container = document.getElementById('pedidosLista');
+        // ========== PEDIDOS ==========
+        function actualizarPedidos() {
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            let pendientes = pedidos.filter(p => p.estado === 'pendiente');
+            let container = document.getElementById('pedidosLista');
             if (!container) return;
-            
-            const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-            const pendientes = pedidos.filter(p => p.estado === 'pendiente');
-            
             if (pendientes.length === 0) {
                 container.innerHTML = '<div class="list-item">✅ No hay pedidos pendientes</div>';
                 return;
             }
-            
             let html = '';
-            pendientes.forEach(pedido => {
-                html += `
-                    <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 2px solid #f39c12;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span style="font-weight: 700;">${pedido.producto.emoji} ${pedido.producto.name}</span>
-                            <span class="badge-pendiente">NUEVO</span>
-                        </div>
-                        <div style="font-size: 14px; margin-bottom: 12px;">
-                            👤 ${pedido.cliente}<br>
-                            📱 ${pedido.telefono}
-                        </div>
-                        <div style="background: #f2f6ff; padding: 12px; border-radius: 12px; margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>💰 Total:</span>
-                                <span style="font-weight: 700;">$${pedido.total.toFixed(2)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>💳 Pago:</span>
-                                <span>${pedido.cuotas} cuota(s) · $${pedido.montoPorCuota.toFixed(2)} c/u</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-success" style="flex: 1;" onclick="abrirConfirmarPedido(${pedido.id})">
-                                ✅ Confirmar
-                            </button>
-                            <button class="btn btn-danger" style="flex: 1;" onclick="rechazarPedido(${pedido.id})">
-                                ❌ Rechazar
-                            </button>
-                        </div>
+            pendientes.forEach(p => {
+                html += `<div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 2px solid #f39c12;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-weight: 700;">${p.producto.emoji} ${p.producto.nombre}</span>
+                        <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px;">NUEVO</span>
                     </div>
-                `;
+                    <div style="font-size: 14px; margin-bottom: 12px;">
+                        👤 ${p.cliente}<br>📱 ${p.telefono}
+                    </div>
+                    <div style="background: #f2f6ff; padding: 12px; border-radius: 12px; margin-bottom: 12px;">
+                        <div>💰 Total: <strong>$${p.total.toFixed(2)}</strong></div>
+                        <div>💳 ${p.cuotas} cuota(s) · $${p.montoPorCuota.toFixed(2)} c/u</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-success" style="flex:1; padding: 12px; border: none; border-radius: 12px;" onclick="abrirConfirmarPedido(${p.id})">✅ Confirmar</button>
+                        <button class="btn-danger" style="flex:1; padding: 12px; border: none; border-radius: 12px;" onclick="rechazarPedido(${p.id})">❌ Rechazar</button>
+                    </div>
+                </div>`;
             });
-            
             container.innerHTML = html;
             actualizarNotificaciones();
         }
-
-        function abrirConfirmarPedido(pedidoId) {
-            const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-            const pedido = pedidos.find(p => p.id === pedidoId && p.estado === 'pendiente');
-            if (!pedido) return;
-            
-            window.pedidoEnConfirmacion = pedido;
-            
-            document.getElementById('pedidoConfirmarInfo').innerHTML = `
-                <div style="font-weight: 600;">${pedido.producto.emoji} ${pedido.producto.name}</div>
-                <div style="font-size: 13px; color: #6f7b8a;">${pedido.cliente} · ${pedido.telefono}</div>
-                <div style="margin-top: 8px;">💰 Total: $${pedido.total.toFixed(2)}</div>
-                <div>💳 Solicitó: ${pedido.cuotas} cuota(s)</div>
+        function abrirConfirmarPedido(id) {
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            pedidoSeleccionado = pedidos.find(p => p.id === id && p.estado === 'pendiente');
+            if (!pedidoSeleccionado) return;
+            document.getElementById('confirmarInfo').innerHTML = `
+                <div style="font-weight: 700;">${pedidoSeleccionado.producto.emoji} ${pedidoSeleccionado.producto.nombre}</div>
+                <div style="color: #666;">${pedidoSeleccionado.cliente} · ${pedidoSeleccionado.telefono}</div>
+                <div style="margin-top: 8px;">💰 Total: $${pedidoSeleccionado.total.toFixed(2)}</div>
+                <div>💳 Solicitó: ${pedidoSeleccionado.cuotas} cuota(s)</div>
             `;
-            
-            // Resetear selección de pago
-            seleccionarPagoCompleto();
-            
-            document.getElementById('confirmarPedidoModal').classList.add('active');
+            seleccionarPago(true);
+            document.getElementById('confirmarModal').classList.add('active');
         }
-
-        function seleccionarPagoCompleto() {
-            document.getElementById('btnPagoCompleto').className = 'btn btn-success';
-            document.getElementById('btnPagoParcial').className = 'btn btn-outline';
-            document.getElementById('pagoParcialInfo').style.display = 'none';
-            window.pagoConfirmadoCompleto = true;
-        }
-
-        function seleccionarPagoParcial() {
-            document.getElementById('btnPagoCompleto').className = 'btn btn-outline';
-            document.getElementById('btnPagoParcial').className = 'btn btn-success';
-            document.getElementById('pagoParcialInfo').style.display = 'block';
-            window.pagoConfirmadoCompleto = false;
-        }
-
-        function ejecutarConfirmacionPedido() {
-            const pedido = window.pedidoEnConfirmacion;
-            if (!pedido) return;
-            
-            // Verificar stock
-            const productos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            const producto = productos.find(p => p.id === pedido.producto.id);
-            
-            if (!producto || producto.stock < 1) {
-                showToast('❌ Stock insuficiente');
-                document.getElementById('confirmarPedidoModal').classList.remove('active');
-                return;
-            }
-            
-            // Restar stock
-            producto.stock -= 1;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
-            actualizarCatalogo();
-            
-            // Actualizar estado del pedido
-            pedido.estado = 'aceptado';
-            pedido.pagoCompleto = window.pagoConfirmadoCompleto;
-            pedido.fechaConfirmacion = new Date().toISOString();
-            
-            // Mover a ventas
-            let ventas = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
-            
-            const venta = {
-                id: Date.now(),
-                fecha: pedido.fechaConfirmacion,
-                cliente: pedido.cliente,
-                telefono: pedido.telefono,
-                producto: pedido.producto.name,
-                emoji: pedido.producto.emoji,
-                total: pedido.total,
-                cuotas: pedido.cuotas,
-                montoPorCuota: pedido.montoPorCuota,
-                pagado: window.pagoConfirmadoCompleto ? pedido.total : pedido.montoPorCuota,
-                saldo: window.pagoConfirmadoCompleto ? 0 : pedido.total - pedido.montoPorCuota,
-                estado: window.pagoConfirmadoCompleto ? 'pagado' : 'por_cobrar'
-            };
-            
-            ventas.unshift(venta);
-            localStorage.setItem(VENTAS_KEY, JSON.stringify(ventas));
-            
-            // Actualizar cliente
-            let clientes = JSON.parse(localStorage.getItem(CLIENTES_KEY) || '[]');
-            let cliente = clientes.find(c => c.telefono === pedido.telefono);
-            
-            if (cliente) {
-                cliente.deuda = (cliente.deuda || 0) + (venta.saldo || 0);
+        function seleccionarPago(completo) {
+            pagoEsCompleto = completo;
+            let btnCompleto = document.getElementById('btnPagoCompleto');
+            let btnParcial = document.getElementById('btnPagoParcial');
+            if (completo) {
+                btnCompleto.className = 'btn-success';
+                btnParcial.className = 'btn-outline';
             } else {
-                clientes.push({
-                    id: Date.now(),
-                    nombre: pedido.cliente,
-                    telefono: pedido.telefono,
-                    deuda: venta.saldo || 0
-                });
+                btnCompleto.className = 'btn-outline';
+                btnParcial.className = 'btn-success';
             }
-            localStorage.setItem(CLIENTES_KEY, JSON.stringify(clientes));
-            
-            // Eliminar de pendientes
-            const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-            const nuevos = pedidos.filter(p => p.id !== pedido.id);
-            localStorage.setItem(PEDIDOS_KEY, JSON.stringify(nuevos));
-            
-            // Notificar al cliente
-            localStorage.setItem('confirmado_' + pedido.id, JSON.stringify({
-                ...pedido,
-                pagoCompleto: window.pagoConfirmadoCompleto
-            }));
-            
-            document.getElementById('confirmarPedidoModal').classList.remove('active');
-            cargarPedidos();
-            cargarVentas();
-            cargarClientes();
-            showToast('✅ Pedido confirmado');
-            actualizarNotificaciones();
-            
-            // Forzar actualización en catálogo público
-            localStorage.setItem('catalogo_actualizado', Date.now().toString());
         }
-
-        function rechazarPedido(pedidoId) {
-            const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-            const nuevos = pedidos.filter(p => p.id !== pedidoId);
-            localStorage.setItem(PEDIDOS_KEY, JSON.stringify(nuevos));
-            
-            // Notificar rechazo
-            localStorage.setItem('rechazado_' + pedidoId, 'true');
-            
-            cargarPedidos();
-            showToast('❌ Pedido rechazado');
-            actualizarNotificaciones();
-        }
-
-        // ===== 6. VENTAS / LIBRO DE CUENTAS =====
-        function cargarVentas() {
-            const container = document.getElementById('ventasLista');
-            if (!container) return;
-            
-            const ventas = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
-            
-            // Calcular totales
-            const totalVentas = ventas.reduce((sum, v) => sum + v.total, 0);
-            const totalPorCobrar = ventas.reduce((sum, v) => sum + (v.saldo || 0), 0);
-            
-            document.getElementById('totalVentas').innerHTML = `$${totalVentas.toFixed(2)}`;
-            document.getElementById('totalPorCobrar').innerHTML = `$${totalPorCobrar.toFixed(2)}`;
-            
-            if (ventas.length === 0) {
-                container.innerHTML = '<div class="list-item">No hay ventas registradas</div>';
+        function confirmarPedido() {
+            if (!pedidoSeleccionado) return;
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            let producto = productos.find(p => p.id === pedidoSeleccionado.producto.id);
+            if (!producto || producto.stock < 1) {
+                toast('❌ Stock insuficiente');
+                document.getElementById('confirmarModal').classList.remove('active');
                 return;
             }
-            
+            producto.stock -= 1;
+            localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
+            actualizarCatalogo();
+            pedidoSeleccionado.estado = 'aceptado';
+            pedidoSeleccionado.pagoCompleto = pagoEsCompleto;
+            pedidoSeleccionado.fechaConfirmacion = new Date().toISOString();
+            let venta = {
+                id: Date.now(),
+                fecha: pedidoSeleccionado.fechaConfirmacion,
+                cliente: pedidoSeleccionado.cliente,
+                telefono: pedidoSeleccionado.telefono,
+                producto: pedidoSeleccionado.producto.nombre,
+                emoji: pedidoSeleccionado.producto.emoji,
+                total: pedidoSeleccionado.total,
+                cuotas: pedidoSeleccionado.cuotas,
+                montoPorCuota: pedidoSeleccionado.montoPorCuota,
+                pagado: pagoEsCompleto ? pedidoSeleccionado.total : pedidoSeleccionado.montoPorCuota,
+                saldo: pagoEsCompleto ? 0 : pedidoSeleccionado.total - pedidoSeleccionado.montoPorCuota
+            };
+            let ventas = JSON.parse(localStorage.getItem(STORAGE_VENTAS)) || [];
+            ventas.unshift(venta);
+            localStorage.setItem(STORAGE_VENTAS, JSON.stringify(ventas));
+            let clientes = JSON.parse(localStorage.getItem(STORAGE_CLIENTES)) || [];
+            let cliente = clientes.find(c => c.telefono === pedidoSeleccionado.telefono);
+            if (cliente) cliente.deuda = (cliente.deuda || 0) + (venta.saldo || 0);
+            else clientes.push({ id: Date.now(), nombre: pedidoSeleccionado.cliente, telefono: pedidoSeleccionado.telefono, deuda: venta.saldo || 0 });
+            localStorage.setItem(STORAGE_CLIENTES, JSON.stringify(clientes));
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            pedidos = pedidos.filter(p => p.id !== pedidoSeleccionado.id);
+            localStorage.setItem(STORAGE_PEDIDOS, JSON.stringify(pedidos));
+            // 🔴 NOTIFICAR AL CLIENTE
+            localStorage.setItem(`confirmado_${pedidoSeleccionado.id}`, JSON.stringify(pedidoSeleccionado));
+            document.getElementById('confirmarModal').classList.remove('active');
+            actualizarPedidos();
+            actualizarVentas();
+            actualizarClientes();
+            toast('✅ Pedido confirmado');
+            localStorage.setItem('catalogo_actualizado', Date.now());
+        }
+        function rechazarPedido(id) {
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            pedidos = pedidos.filter(p => p.id !== id);
+            localStorage.setItem(STORAGE_PEDIDOS, JSON.stringify(pedidos));
+            localStorage.setItem(`rechazado_${id}`, 'true');
+            actualizarPedidos();
+            toast('❌ Pedido rechazado');
+        }
+
+        // ========== VENTAS ==========
+        function actualizarVentas() {
+            let ventas = JSON.parse(localStorage.getItem(STORAGE_VENTAS)) || [];
+            let container = document.getElementById('ventasLista');
+            if (!container) return;
+            if (ventas.length === 0) { container.innerHTML = '<div class="list-item">No hay ventas</div>'; return; }
             let html = '';
             ventas.slice(0, 20).forEach(v => {
-                const fecha = new Date(v.fecha).toLocaleDateString();
-                html += `
-                    <div class="list-item">
-                        <div>
-                            <span style="font-weight: 600;">${v.emoji} ${v.producto}</span><br>
-                            <span style="font-size: 12px; color: #6f7b8a;">${v.cliente} · ${fecha}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-weight: 700;">$${v.total.toFixed(2)}</span><br>
-                            ${v.saldo > 0 ? 
-                                `<span style="font-size: 12px; color: #e74c3c;">Debe: $${v.saldo.toFixed(2)}</span>` : 
-                                `<span style="font-size: 12px; color: #2ecc71;">Pagado</span>`
-                            }
-                            ${v.saldo > 0 ? `<button class="btn-small" style="margin-top: 4px; padding: 4px 8px;" onclick="abrirRegistroPago(${v.id})">💰 Pagar</button>` : ''}
-                        </div>
+                let fecha = new Date(v.fecha).toLocaleDateString();
+                html += `<div class="list-item">
+                    <div><span style="font-weight:600;">${v.emoji} ${v.producto}</span><br><span style="font-size:12px; color:#666;">${v.cliente} · ${fecha}</span></div>
+                    <div style="text-align:right;">
+                        <span style="font-weight:700;">$${v.total.toFixed(2)}</span><br>
+                        ${v.saldo > 0 ? `<span style="color:#e74c3c;">Debe: $${v.saldo.toFixed(2)}</span>` : `<span style="color:#2ecc71;">Pagado</span>`}
                     </div>
-                `;
+                </div>`;
             });
             container.innerHTML = html;
         }
 
-        function abrirRegistroPago(ventaId) {
-            const ventas = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
-            const venta = ventas.find(v => v.id === ventaId);
-            if (!venta) return;
-            
-            window.ventaPagoActual = venta;
-            document.getElementById('pagoClienteInfo').innerHTML = `
-                <div style="font-weight: 600;">${venta.emoji} ${venta.producto}</div>
-                <div>Cliente: ${venta.cliente}</div>
-                <div>Saldo pendiente: <strong style="color: #e74c3c;">$${venta.saldo.toFixed(2)}</strong></div>
-            `;
-            document.getElementById('montoPago').value = venta.saldo.toFixed(2);
-            document.getElementById('registrarPagoModal').classList.add('active');
-        }
-
-        function registrarPago() {
-            const venta = window.ventaPagoActual;
-            const monto = parseFloat(document.getElementById('montoPago').value);
-            
-            if (!venta || !monto || monto <= 0) {
-                showToast('⚠️ Ingresa un monto válido');
-                return;
-            }
-            
-            const ventas = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
-            const index = ventas.findIndex(v => v.id === venta.id);
-            
-            if (index === -1) return;
-            
-            ventas[index].pagado = (ventas[index].pagado || 0) + monto;
-            ventas[index].saldo = Math.max(0, (ventas[index].saldo || 0) - monto);
-            
-            if (ventas[index].saldo <= 0) {
-                ventas[index].estado = 'pagado';
-            }
-            
-            localStorage.setItem(VENTAS_KEY, JSON.stringify(ventas));
-            
-            // Actualizar deuda del cliente
-            let clientes = JSON.parse(localStorage.getItem(CLIENTES_KEY) || '[]');
-            let cliente = clientes.find(c => c.telefono === venta.telefono);
-            if (cliente) {
-                cliente.deuda = (cliente.deuda || 0) - monto;
-                if (cliente.deuda < 0) cliente.deuda = 0;
-                localStorage.setItem(CLIENTES_KEY, JSON.stringify(clientes));
-            }
-            
-            document.getElementById('registrarPagoModal').classList.remove('active');
-            cargarVentas();
-            cargarClientes();
-            showToast('💰 Pago registrado');
-        }
-
-        // ===== 7. CLIENTES Y DEUDORES =====
-        function cargarClientes() {
-            const container = document.getElementById('clientesLista');
+        // ========== CLIENTES ==========
+        function actualizarClientes() {
+            let clientes = JSON.parse(localStorage.getItem(STORAGE_CLIENTES)) || [];
+            let container = document.getElementById('clientesLista');
             if (!container) return;
-            
-            const clientes = JSON.parse(localStorage.getItem(CLIENTES_KEY) || '[]');
-            
-            if (clientes.length === 0) {
-                container.innerHTML = '<div class="list-item">No hay clientes registrados</div>';
-                return;
-            }
-            
+            if (clientes.length === 0) { container.innerHTML = '<div class="list-item">No hay clientes</div>'; return; }
             let html = '';
-            clientes.sort((a, b) => (b.deuda || 0) - (a.deuda || 0)).forEach(c => {
-                html += `
-                    <div class="list-item">
-                        <div>
-                            <span style="font-weight: 600;">${c.nombre}</span><br>
-                            <span style="font-size: 12px; color: #6f7b8a;">📱 ${c.telefono}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            ${c.deuda > 0 ? 
-                                `<span class="badge-deuda">Debe: $${c.deuda.toFixed(2)}</span>` : 
-                                `<span class="badge-completo">Al día</span>`
-                            }
-                        </div>
-                    </div>
-                `;
+            clientes.sort((a,b) => (b.deuda||0) - (a.deuda||0)).forEach(c => {
+                html += `<div class="list-item">
+                    <div><span style="font-weight:600;">${c.nombre}</span><br><span style="font-size:12px; color:#666;">📱 ${c.telefono}</span></div>
+                    <div>${c.deuda > 0 ? `<span style="background:#e74c3c; color:white; padding:4px 12px; border-radius:20px;">$${c.deuda.toFixed(2)}</span>` : `<span style="color:#2ecc71;">Al día</span>`}</div>
+                </div>`;
             });
             container.innerHTML = html;
         }
 
-        // ===== 8. NOTIFICACIONES =====
+        // ========== NOTIFICACIONES ==========
         function actualizarNotificaciones() {
-            const pedidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]');
-            const pendientes = pedidos.filter(p => p.estado === 'pendiente').length;
-            
-            const badge = document.getElementById('notificationCount');
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            let pendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+            let badge = document.getElementById('notificationCount');
             if (badge) {
                 badge.textContent = pendientes;
                 badge.style.display = pendientes > 0 ? 'block' : 'none';
             }
         }
-
-        function openNotificacionesModal() {
-            // Por ahora solo muestra toast
-            const pendientes = JSON.parse(localStorage.getItem(PEDIDOS_KEY) || '[]').filter(p => p.estado === 'pendiente').length;
-            showToast(`🛒 Tienes ${pendientes} pedido(s) pendiente(s)`);
+        function verNotificaciones() {
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            let pendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+            toast(`🛒 Tienes ${pendientes} pedido(s) pendiente(s)`);
+            showScreen('pedidos-screen');
         }
 
-        // ===== 9. NOMBRE DEL NEGOCIO =====
-        function openEditNombreModal() {
-            const nuevo = prompt('Nombre de tu tienda:', localStorage.getItem('businessName') || 'Mi Tienda');
-            if (nuevo && nuevo.trim()) {
-                localStorage.setItem('businessName', nuevo.trim());
-                document.querySelectorAll('#businessNameDisplay, .business-name').forEach(el => {
-                    if (el) el.textContent = nuevo.trim();
-                });
-                showToast('✅ Nombre actualizado');
+        // ========== NOMBRE TIENDA ==========
+        function cambiarNombreTienda() {
+            let nombre = prompt('Nombre de tu tienda:', localStorage.getItem('businessName') || 'Mi Tienda');
+            if (nombre && nombre.trim()) {
+                localStorage.setItem('businessName', nombre.trim());
+                document.querySelectorAll('#businessNameDisplay').forEach(el => el.textContent = nombre.trim());
+                toast('✅ Nombre actualizado');
             }
         }
 
-        // ===== 10. UTILIDADES =====
+        // ========== NAVEGACIÓN ==========
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
             document.getElementById(screenId).classList.add('active-screen');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const navMap = {
-                'catalogo-screen': 0,
-                'pedidos-screen': 1,
-                'ventas-screen': 2,
-                'clientes-screen': 3
-            };
-            if (navMap[screenId] !== undefined) {
-                document.querySelectorAll('.nav-item')[navMap[screenId]].classList.add('active');
-            }
-            
-            // Actualizar datos al mostrar
-            if (screenId === 'ventas-screen') cargarVentas();
-            if (screenId === 'clientes-screen') cargarClientes();
+            let index = { 'catalogo-screen': 0, 'pedidos-screen': 1, 'ventas-screen': 2, 'clientes-screen': 3 }[screenId];
+            if (index !== undefined) document.querySelectorAll('.nav-item')[index].classList.add('active');
+            if (screenId === 'ventas-screen') actualizarVentas();
+            if (screenId === 'clientes-screen') actualizarClientes();
             if (screenId === 'catalogo-screen') actualizarCatalogo();
-            if (screenId === 'pedidos-screen') cargarPedidos();
+            if (screenId === 'pedidos-screen') actualizarPedidos();
         }
 
-        function goBack() {
-            showScreen('catalogo-screen');
-        }
-
-        function showToast(msg) {
-            const t = document.createElement('div');
+        // ========== TOAST ==========
+        function toast(msg) {
+            let t = document.createElement('div');
             t.className = 'toast';
             t.textContent = msg;
             document.body.appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
-        // Exponer funciones globalmente
         window.showScreen = showScreen;
-        window.goBack = goBack;
-        window.openAgregarProductoModal = openAgregarProductoModal;
+        window.cambiarNombreTienda = cambiarNombreTienda;
+        window.copiarLink = copiarLink;
+        window.compartirWhatsApp = compartirWhatsApp;
+        window.compartirFacebook = compartirFacebook;
+        window.abrirModalProducto = abrirModalProducto;
         window.editarProducto = editarProducto;
         window.eliminarProducto = eliminarProducto;
         window.guardarProducto = guardarProducto;
-        window.cerrarProductoModal = cerrarProductoModal;
-        window.copiarLink = copiarLink;
         window.abrirConfirmarPedido = abrirConfirmarPedido;
-        window.seleccionarPagoCompleto = seleccionarPagoCompleto;
-        window.seleccionarPagoParcial = seleccionarPagoParcial;
-        window.ejecutarConfirmacionPedido = ejecutarConfirmacionPedido;
+        window.seleccionarPago = seleccionarPago;
+        window.confirmarPedido = confirmarPedido;
         window.rechazarPedido = rechazarPedido;
-        window.abrirRegistroPago = abrirRegistroPago;
-        window.registrarPago = registrarPago;
-        window.openEditNombreModal = openEditNombreModal;
-        window.openNotificacionesModal = openNotificacionesModal;
+        window.verNotificaciones = verNotificaciones;
     </script>
 </body>
 </html>
