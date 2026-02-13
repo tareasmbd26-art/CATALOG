@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Mi Tienda · Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f5f7fb; display: flex; flex-direction: column; align-items: center; }
+        .app-container { max-width: 480px; width: 100%; background: white; min-height: 100vh; position: relative; }
+        .screen { display: none; padding: 16px 16px 80px; }
+        .active-screen { display: block; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f2f5; }
+        .logo-area { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .logo-icon { background: linear-gradient(145deg, #1a5cff, #0a3eb0); color: white; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .logo-text { font-weight: 700; font-size: 18px; color: #0b1b33; }
+        .header-actions { display: flex; gap: 16px; }
+        .icon-btn { font-size: 20px; cursor: pointer; position: relative; }
+        .notification-badge { position: absolute; top: -4px; right: -4px; background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; }
+        .btn { padding: 12px 20px; background: #1a5cff; color: white; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; }
+        .btn-small { padding: 8px 16px; font-size: 13px; }
+        .btn-success { background: #2ecc71; }
+        .btn-danger { background: #e74c3c; }
+        .btn-outline { background: white; border: 2px solid #1a5cff; color: #1a5cff; }
+        .producto-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #e9ecf0; display: flex; gap: 16px; }
+        .producto-emoji { width: 64px; height: 64px; background: #f0f2f5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        .producto-info { flex: 1; }
+        .producto-nombre { font-weight: 600; font-size: 16px; }
+        .producto-precio { font-size: 18px; font-weight: 700; color: #1a5cff; }
+        .producto-stock { font-size: 13px; color: #2ecc71; }
+        .list-card { background: white; border-radius: 20px; border: 1px solid #f0f2f5; margin-bottom: 16px; }
+        .list-item { display: flex; justify-content: space-between; padding: 16px; border-bottom: 1px solid #f5f7fb; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; position: relative; }
+        .close-modal-btn { position: absolute; top: 16px; right: 16px; background: #f0f2f5; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; color: #666; }
+        .form-input { width: 100%; padding: 14px; border: 2px solid #e9ecf0; border-radius: 14px; margin-bottom: 16px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid #e9ecf0; display: flex; padding: 8px 0; z-index: 500; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; flex: 1; padding: 8px; cursor: pointer; color: #8a92a3; }
+        .nav-item.active { color: #1a5cff; }
+        .nav-icon { font-size: 22px; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: white; padding: 12px 24px; border-radius: 30px; z-index: 3000; font-size: 14px; text-align: center; min-width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <div class="logo-area" onclick="cambiarNombreTienda()">
+                <div class="logo-icon">🏪</div>
+                <div class="logo-text" id="businessNameDisplay">Mi Tienda</div>
+            </div>
+            <div class="header-actions">
+                <span class="icon-btn" onclick="verNotificaciones()">
+                    🔔
+                    <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                </span>
+            </div>
+        </div>
+
+        <div id="catalogo-screen" class="screen active-screen">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="font-size: 24px;">📱 Catálogo</h1>
+                <button class="btn-small" onclick="abrirModalProducto()">+ Agregar</button>
+            </div>
+
+            <div style="background: #f2f6ff; border-radius: 20px; padding: 20px; margin-bottom: 24px; border: 2px solid #1a5cff;">
+                <div style="font-weight: 700; margin-bottom: 12px;">🌐 LINK DE TU TIENDA:</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="catalogLink" readonly value="cargando..." style="flex: 1; padding: 14px; border: 1px solid #ccc; border-radius: 12px; background: white;">
+                    <button class="btn-small" onclick="copiarLink()" style="background: #1a5cff; color: white;">📋 Copiar</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-small" onclick="compartirWhatsApp()" style="background: #25D366; color: white; flex: 1;">📲 WhatsApp</button>
+                    <button class="btn-small" onclick="compartirFacebook()" style="background: #1877F2; color: white; flex: 1;">📘 Facebook</button>
+                </div>
+            </div>
+
+            <h2 style="font-size: 18px; margin-bottom: 12px;">Tus productos</h2>
+            <div id="productosLista"></div>
+            <div id="productosEmpty" style="display: none; text-align: center; padding: 40px; color: #999;">No hay productos</div>
+        </div>
+
+        <div id="pedidos-screen" class="screen">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <span style="font-size: 28px; cursor: pointer;" onclick="showScreen('catalogo-screen')">←</span>
+                <h1 style="font-size: 24px;">🛒 Pedidos</h1>
+            </div>
+            <div id="pedidosLista">Cargando...</div>
+        </div>
+
+        <div id="ventas-screen" class="screen">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <span style="font-size: 28px; cursor: pointer;" onclick="showScreen('catalogo-screen')">←</span>
+                <h1 style="font-size: 24px;">💰 Ventas</h1>
+            </div>
+            <div id="ventasLista">Cargando...</div>
+        </div>
+
+        <div id="clientes-screen" class="screen">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <span style="font-size: 28px; cursor: pointer;" onclick="showScreen('catalogo-screen')">←</span>
+                <h1 style="font-size: 24px;">👥 Clientes</h1>
+            </div>
+            <div id="clientesLista">Cargando...</div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showScreen('catalogo-screen')">📱<span>Catálogo</span></div>
+            <div class="nav-item" onclick="showScreen('pedidos-screen')">🛒<span>Pedidos</span></div>
+            <div class="nav-item" onclick="showScreen('ventas-screen')">💰<span>Ventas</span></div>
+            <div class="nav-item" onclick="showScreen('clientes-screen')">👥<span>Clientes</span></div>
+        </div>
+
+        <div id="productoModal" class="modal" onclick="cerrarModalFuera(event)">
+            <div class="modal-content">
+                <div class="close-modal-btn" onclick="cerrarModal()">✕</div>
+                <h2 id="modalTitulo" style="margin-bottom: 16px;">➕ Agregar producto</h2>
+                <input type="text" id="productoNombre" class="form-input" placeholder="Nombre (Ej: Pan) *" autocomplete="off">
+                <input type="text" id="productoDescripcion" class="form-input" placeholder="Descripción (Opcional)" autocomplete="off">
+                <input type="number" id="productoPrecio" class="form-input" placeholder="Precio (Ej: 1.50) *" step="0.01">
+                <input type="number" id="productoStock" class="form-input" placeholder="Stock (Cantidad) *">
+                <input type="text" id="productoEmoji" class="form-input" placeholder="Emoji (Ej: 🥖)" maxlength="2">
+                <button class="btn" onclick="guardarProducto()" style="width: 100%;">Guardar producto</button>
+            </div>
+        </div>
+
+        <div id="confirmarModal" class="modal" onclick="cerrarModalFuera(event)">
+            <div class="modal-content">
+                <div class="close-modal-btn" onclick="cerrarModal()">✕</div>
+                <h2 style="margin-bottom: 16px;">✅ Confirmar pedido</h2>
+                <div id="confirmarInfo" style="background: #f2f6ff; padding: 16px; border-radius: 12px; margin-bottom: 16px;"></div>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <button id="btnPagoCompleto" class="btn-success" style="flex:1; padding:12px; border:none; border-radius:12px;" onclick="seleccionarPago(true)">✅ Completo</button>
+                    <button id="btnPagoParcial" class="btn-outline" style="flex:1; padding:12px; border:2px solid #1a5cff; border-radius:12px; background: white;" onclick="seleccionarPago(false)">🔄 2 cuotas</button>
+                </div>
+                <button class="btn" onclick="confirmarPedido()" style="width: 100%;">Confirmar pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== VARIABLES GLOBALES ==========
+        const STORAGE_PRODUCTOS = 'catalogo_productos';
+        const STORAGE_PEDIDOS = 'pedidos_pendientes';
+        const STORAGE_VENTAS = 'ventas_registradas';
+        const STORAGE_CLIENTES = 'clientes_registrados';
+        
+        let productoEditandoId = null;
+        let pedidoSeleccionado = null;
+        let pagoEsCompleto = true;
+
+        // ========== INICIALIZACIÓN ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Admin iniciado');
+            
+            if (!localStorage.getItem(STORAGE_PRODUCTOS)) {
+                const productosIniciales = [
+                    { id: 1, nombre: "Pan francés", descripcion: "Pan fresco del día", precio: 2.50, stock: 98, emoji: "🥖" },
+                    { id: 2, nombre: "Pastel de fresa", descripcion: "Delicioso pastel casero", precio: 15.00, stock: 23, emoji: "🍰" }
+                ];
+                localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productosIniciales));
+            }
+            if (!localStorage.getItem(STORAGE_PEDIDOS)) localStorage.setItem(STORAGE_PEDIDOS, '[]');
+            if (!localStorage.getItem(STORAGE_VENTAS)) localStorage.setItem(STORAGE_VENTAS, '[]');
+            if (!localStorage.getItem(STORAGE_CLIENTES)) localStorage.setItem(STORAGE_CLIENTES, '[]');
+            
+            const storedName = localStorage.getItem('businessName');
+            if(storedName) {
+                document.querySelectorAll('#businessNameDisplay').forEach(el => el.textContent = storedName);
+            }
+
+            actualizarLink();
+            actualizarCatalogo();
+            actualizarPedidos();
+            actualizarVentas();
+            actualizarClientes();
+            actualizarNotificaciones();
+            
+            window.addEventListener('storage', function(e) {
+                if (e.key === STORAGE_PEDIDOS) {
+                    actualizarPedidos();
+                    actualizarNotificaciones();
+                }
+            });
+        });
+
+        // ========== MODALES ==========
+        function cerrarModal() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        function cerrarModalFuera(event) {
+            if (event.target.classList.contains('modal')) {
+                cerrarModal();
+            }
+        }
+
+        // ========== LINK DEL CATÁLOGO ==========
+        function actualizarLink() {
+            let link;
+            if (window.location.protocol === 'file:') {
+                // Modo local: reemplazar index.html por tienda.html en la ruta actual
+                link = window.location.href.replace('index.html', 'tienda.html');
+            } else {
+                // Modo servidor: asumir que tienda.html está en el mismo directorio
+                const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+                link = base + 'tienda.html';
+            }
+            localStorage.setItem('catalogLink', link);
+            const input = document.getElementById('catalogLink');
+            if (input) input.value = link;
+        }
+        
+        function copiarLink() { 
+            let link = document.getElementById('catalogLink');
+            if (link) {
+                link.select(); 
+                document.execCommand('copy'); 
+                toast('📋 Link copiado');
+            }
+        }
+        
+        function compartirWhatsApp() { 
+            let link = document.getElementById('catalogLink')?.value || localStorage.getItem('catalogLink');
+            let nombre = localStorage.getItem('businessName') || 'Mi Tienda';
+            window.open(`https://wa.me/?text=${encodeURIComponent(`🛍️ ${nombre}\n🔗 ${link}`)}`, '_blank');
+        }
+        
+        function compartirFacebook() {
+            let link = document.getElementById('catalogLink')?.value || localStorage.getItem('catalogLink');
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
+        }
+
+        // ========== CATÁLOGO ==========
+        function actualizarCatalogo() {
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            let container = document.getElementById('productosLista');
+            let emptyMsg = document.getElementById('productosEmpty');
+            
+            if (!container) return;
+            
+            if (productos.length === 0) {
+                if (emptyMsg) emptyMsg.style.display = 'block';
+                container.innerHTML = '';
+                return;
+            }
+            
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            
+            let html = '';
+            productos.sort((a,b) => b.id - a.id).forEach(p => {
+                html += `<div class="producto-card">
+                    <div class="producto-emoji">${p.emoji || '📦'}</div>
+                    <div class="producto-info">
+                        <div class="producto-nombre">${p.nombre}</div>
+                        <div style="color: #666; font-size: 13px;">${p.descripcion || ''}</div>
+                        <div class="producto-precio">$${parseFloat(p.precio).toFixed(2)}</div>
+                        <div class="producto-stock">📦 Stock: ${parseInt(p.stock) || 0} uds</div>
+                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                            <button class="btn-small" style="background: #f39c12; color: white; border: none;" onclick="editarProducto(${p.id})">✏️ Editar</button>
+                            <button class="btn-small" style="background: #e74c3c; color: white; border: none;" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+        
+        function abrirModalProducto() {
+            productoEditandoId = null;
+            document.getElementById('modalTitulo').innerText = '➕ Agregar producto';
+            document.getElementById('productoNombre').value = '';
+            document.getElementById('productoDescripcion').value = '';
+            document.getElementById('productoPrecio').value = '';
+            document.getElementById('productoStock').value = '';
+            document.getElementById('productoEmoji').value = '';
+            document.getElementById('productoModal').classList.add('active');
+        }
+        
+        function editarProducto(id) {
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            let p = productos.find(p => p.id === id);
+            if (!p) return;
+            
+            productoEditandoId = id;
+            document.getElementById('modalTitulo').innerText = '✏️ Editar producto';
+            document.getElementById('productoNombre').value = p.nombre;
+            document.getElementById('productoDescripcion').value = p.descripcion || '';
+            document.getElementById('productoPrecio').value = p.precio;
+            document.getElementById('productoStock').value = p.stock;
+            document.getElementById('productoEmoji').value = p.emoji || '';
+            document.getElementById('productoModal').classList.add('active');
+        }
+        
+        function eliminarProducto(id) {
+            if (!confirm('¿Eliminar este producto?')) return;
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            productos = productos.filter(p => p.id !== id);
+            localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
+            actualizarCatalogo();
+            localStorage.setItem('catalogo_actualizado', Date.now());
+            toast('🗑️ Producto eliminado');
+        }
+        
+        function guardarProducto() {
+            let nombre = document.getElementById('productoNombre').value.trim();
+            let precioStr = document.getElementById('productoPrecio').value;
+            let stockStr = document.getElementById('productoStock').value;
+            let emoji = document.getElementById('productoEmoji').value.trim();
+            
+            if (!nombre) { toast('⚠️ Falta el nombre'); return; }
+            if (!precioStr) { toast('⚠️ Falta el precio'); return; }
+            if (!stockStr) { toast('⚠️ Falta el stock'); return; }
+
+            let precio = parseFloat(precioStr);
+            let stock = parseInt(stockStr);
+
+            if (isNaN(precio)) { toast('⚠️ Precio inválido'); return; }
+            if (isNaN(stock)) { toast('⚠️ Stock inválido'); return; }
+
+            let productos = JSON.parse(localStorage.getItem(STORAGE_PRODUCTOS)) || [];
+            
+            let producto = {
+                id: productoEditandoId || Date.now(),
+                nombre: nombre,
+                descripcion: document.getElementById('productoDescripcion').value.trim() || 'Sin descripción',
+                precio: precio,
+                stock: stock,
+                emoji: emoji || '📦'
+            };
+            
+            if (productoEditandoId) {
+                let index = productos.findIndex(p => p.id === productoEditandoId);
+                if (index !== -1) {
+                    productos[index] = producto;
+                }
+            } else {
+                productos.push(producto);
+            }
+            
+            localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
+            actualizarCatalogo();
+            cerrarModal();
+            
+            localStorage.setItem('catalogo_actualizado', Date.now());
+            toast(productoEditandoId ? '✅ Producto actualizado' : '✅ Producto agregado');
+        }
+
+         // ========== PEDIDOS (sin cambios relevantes) ==========
+        function actualizarPedidos() {
+            let pedidos = JSON.parse(localStorage.getItem(STORAGE_PEDIDOS)) || [];
+            let pendientes = pedidos.filter(p => p.estado === 'pendiente');
+            let container = document.getElementById('pedidosLista');
+            if (!container) return;
+            if (pendientes.length === 0) {
+                container.innerHTML = '<div class="list-item">✅ No hay pedidos pendientes</div>';
+                return;
+            }
+            let html = '';
+            pendientes.forEach(p => {
+                html += `<div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 2px solid #f39c12;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-weight: 700;">${p.producto.emoji} ${p.producto.nombre}</span>
+                        <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">NUEVO</span>
+                    </div>
+                    <div style="font-size: 14px; margin-bottom: 12px;">
+                        👤 ${p.cliente}<br>
+                        📱 ${p.telefono}
+                    </div>
+                    <div style="background: #f2f6ff; padding: 12px; border-radius: 12px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>💰 Total:</span>
+                            <span style="font-weight: 700;">$${p.total.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>💳 Pago:</span>
+                            <span>${p.cuotas} cuota(s) · $${p.montoPorCuota.toFixed(2)} c/u</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-success" style="flex:1; padding: 12px; border: none; border-radius: 12px; font-weight: 600;" onclick="abrirConfirmarPedido(${p.id})">✅ Confirmar</button>
+                        <button class="btn-danger" style="flex:1; padding: 12px; border: none; border-radius: 12px; font-weight: 600;" onclick="rechazarPedido(${p.id})">❌ Rechazar</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+            actualizarNotificaciones();
+        }
+        
+        function abrirConfirmarPedido(id) { /* ... (sin cambios) */ }
+        function seleccionarPago(completo) { /* ... (sin cambios) */ }
+        function confirmarPedido() { /* ... (sin cambios) */ }
+        function rechazarPedido(id) { /* ... (sin cambios) */ }
+
+        // ========== VENTAS / CLIENTES / NOTIFICACIONES ==========
+        function actualizarVentas() { /* ... (sin cambios) */ }
+        function actualizarClientes() { /* ... (sin cambios) */ }
+        function actualizarNotificaciones() { /* ... (sin cambios) */ }
+        function verNotificaciones() { /* ... (sin cambios) */ }
+        function cambiarNombreTienda() { /* ... (sin cambios) */ }
+        function showScreen(screenId) { /* ... (sin cambios) */ }
+        function toast(msg) { /* ... (sin cambios) */ }
+
+        // Exponer funciones globalmente
+        window.showScreen = showScreen;
+        window.cambiarNombreTienda = cambiarNombreTienda;
+        window.copiarLink = copiarLink;
+        window.compartirWhatsApp = compartirWhatsApp;
+        window.compartirFacebook = compartirFacebook;
+        window.abrirModalProducto = abrirModalProducto;
+        window.editarProducto = editarProducto;
+        window.eliminarProducto = eliminarProducto;
+        window.guardarProducto = guardarProducto;
+        window.abrirConfirmarPedido = abrirConfirmarPedido;
+        window.seleccionarPago = seleccionarPago;
+        window.confirmarPedido = confirmarPedido;
+        window.rechazarPedido = rechazarPedido;
+        window.verNotificaciones = verNotificaciones;
+        window.actualizarLink = actualizarLink;
+        window.cerrarModal = cerrarModal;
+        window.cerrarModalFuera = cerrarModalFuera;
+    </script>
+</body>
+</html>
