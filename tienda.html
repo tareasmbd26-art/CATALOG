@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Mi Tienda · Catálogo</title>
     <style>
+        /* (mismos estilos, ya funcionan) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fb; display: flex; flex-direction: column; align-items: center; padding: 16px; }
         .container { max-width: 480px; width: 100%; background: white; border-radius: 24px; padding: 20px; }
@@ -89,24 +90,25 @@
             let nombre = localStorage.getItem('businessName') || 'Mi Tienda';
             document.getElementById('businessName').textContent = nombre;
             
-            // Escuchar cambios en localStorage (productos, confirmaciones, rechazos)
+            // Escuchar cambios en localStorage
             window.addEventListener('storage', function(e) {
-                // Actualizar productos si cambia el catálogo
+                console.log('📡 storage event en tienda, key:', e.key);
                 if (e.key === STORAGE_PRODUCTOS) {
+                    console.log('📦 Catálogo actualizado, recargando productos...');
                     cargarProductos();
                 }
-                // Confirmación de pedido
                 if (e.key && e.key.startsWith('confirmado_') && e.newValue) {
                     try {
                         let pedido = JSON.parse(e.newValue);
+                        console.log('✅ Pedido confirmado recibido:', pedido);
                         mostrarConfirmacion(pedido);
                         localStorage.removeItem(e.key);
                     } catch (error) {
                         console.warn('Error al parsear confirmación', error);
                     }
                 }
-                // Rechazo de pedido
                 if (e.key && e.key.startsWith('rechazado_') && e.newValue) {
+                    console.log('❌ Pedido rechazado');
                     mostrarRechazo();
                     localStorage.removeItem(e.key);
                 }
@@ -142,7 +144,6 @@
             
             let html = '';
             productos.forEach(p => {
-                // Convertir precio y stock a número para evitar errores
                 const precio = Number(p.precio) || 0;
                 const stock = Number(p.stock) || 0;
                 const emoji = p.emoji || '📦';
